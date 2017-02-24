@@ -49,7 +49,10 @@ app.intent("GetVideoIntent", {
         var query = request.slot("VideoQuery");
 
         search(query, searchOpts, function(err, results) {
-            if (err || results.length !== 1) {
+            if (err) {
+                response.fail(err.message);
+            }
+            else if (results.length !== 1) {
                 response.say('I could not complete your request at this moment.').send();
             } else {
                 var metadata = results[0];
@@ -71,7 +74,7 @@ app.intent("GetVideoIntent", {
                             }
                         });
                         uploader.on('error', function(err) {
-                            response.say('I had trouble downloading this video.').send();
+                            response.fail(err.message);
                         });
                         uploader.on('end', function() {
                             lastSearch = s3.getPublicUrl(__bucket, key);
