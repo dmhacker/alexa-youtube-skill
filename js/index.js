@@ -53,7 +53,7 @@ app.intent("GetVideoIntent", {
                 response.say('I could not complete your request at this moment.').send();
             } else {
                 var metadata = results[0];
-                if (metadata.link === undefined) {
+                if (metadata.id === undefined) {
                     response.say(query + ' did not return any results on YouTube.').send();
                 } else {
                     response.say('I found a relevant video called '+metadata.title+'.');
