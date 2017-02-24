@@ -1,6 +1,7 @@
 
 var alexa = require("alexa-app");
 var search = require('youtube-search');
+var ytdl = require('ytdl-core');
 
 var app = new alexa.app("youtube");
 
