@@ -1,14 +1,28 @@
-var request = require('request');
 var alexa = require("alexa-app");
 var search = require('youtube-search');
 var ytdl = require('ytdl-core');
+var s3 = require('s3');
+
+global.__bucket = process.env.S3_BUCKET;
 
 var app = new alexa.app("youtube");
+
+var s3Client = s3.createClient({
+    s3Options: {
+        accessKeyId: process.env.S3_ACCESS_KEY,
+        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY
+    }
+});
 
 var searchOpts = {
     maxResults: 1,
     type: 'video',
     key: process.env.YOUTUBE_API_KEY
+};
+
+var constants = {
+    'token': 'string',
+    'expectedPreviousToken': 'string'
 };
 
 var lastSearch;
@@ -37,39 +51,46 @@ app.intent("GetVideoIntent", {
         search(query, searchOpts, function(err, results) {
             if (err || results.length !== 1) {
                 response.say('I could not complete your request at this moment.').send();
-            }
-            else {
+            } else {
                 var metadata = results[0];
-                if (metadata.id === undefined) {
-                    response.say(query+' did not return any results on YouTube.').send();
-                }
-                else {
-                    lastSearch = metadata.id;
+                if (metadata.link === undefined) {
+                    response.say(query + ' did not return any results on YouTube.').send();
+                } else {
+                    response.say('I found a relevant video called '+metadata.title+'.');
 
-                    var prefix = 'https://dmhacker-youtube.herokuapp.com';
-                    var options = {
-                        hostname: prefix,
-                        path: '/target/'+lastSearch,
-                        method: 'GET',
-                        json: true
-                    };
-                    request(options, function(err, response, body){
-                        if(err) {
-                            console.log(error);
-                            response.say('I could not complete your request at this moment.').send();
+                    var tmpfile = require('path').join('/tmp', metadata.id+'.mp3');
+                    var key = require('path').join('audio', metadata.id);
+
+                    ytdl(metadata.link, {
+                        filter: function(format) {
+                            return format.container === 'mp3';
                         }
-                        else {
-                            response.say('I have found a video related to '+query+' on YouTube.');
-                            var streamdata = JSON.parse(body);
-                            var stream = {
-                                "url": prefix+streamdata.link,
-                                "token": "aToken",
-                                "expectedPreviousToken": "aToken",
-                                "offsetInMilliseconds": 0
-                            };
-                            response.audioPlayerPlayStream('REPLACE_ALL', stream).send();
-                        }
-                    });
+                    }).pipe(fs.createWriteStream(tmpfile).on('finish', function () {
+                        var params = {
+                            localFile: tmpfile,
+                            s3Params: {
+                                Bucket: __bucket,
+                                Key: key
+                            }
+                        };
+                        var uploader = s3Client.uploadFile(params);
+                        uploader.on('error', function(err) {
+                            response.say('I had trouble downloading this video.').send();
+                        });
+                        uploader.on('end', function() {
+                            lastSearch = s3.getPublicUrl(__bucket, key);
+                            response.card({
+                                'type': 'Simple',
+                                'title': metadata.title,
+                                'content': metadata.link
+                            }).audioPlayerPlayStream('REPLACE_ALL', {
+                                'url': lastSearch,
+                                'streamFormat': 'AUDIO_MPEG',
+                                'token': constants.token,
+                                'expectedPreviousToken': constants.expectedPreviousToken
+                            }).send();
+                        });
+                    }));
                 }
             }
         });
@@ -78,25 +99,25 @@ app.intent("GetVideoIntent", {
     }
 );
 
-app.intent("AMAZON.PauseIntent", {}, function (request, response) {
+app.intent("AMAZON.PauseIntent", {}, function(request, response) {
     response.audioPlayerStop();
 });
 
-app.intent("AMAZON.ResumeIntent", {}, function (request, response) {
-    if (lastSearch !== undefined) {
+app.intent("AMAZON.ResumeIntent", {}, function(request, response) {
+    if (lastSearch === undefined) {
         response.say('You were not playing any video previously.');
-    }
-    else {
-        var stream = ytdl(lastSearch, {
-            filter: function(format) {
-                return format.container === 'mp3';
-            }
+    } else {
+        response.audioPlayerPlayStream('REPLACE_ALL', {
+            'url': lastSearch,
+            'streamFormat': 'AUDIO_MPEG',
+            'token': constants.token,
+            'expectedPreviousToken': constants.expectedPreviousToken
         });
-        response.audioPlayerPlayStream('REPLACE_ALL', stream);
     }
 });
 
-app.intent("AMAZON.StopIntent", {}, function (request, response) {
+app.intent("AMAZON.StopIntent", {}, function(request, response) {
+    lastSearch = undefined;
     response.audioPlayerStop();
     response.audioPlayerClearQueue();
 });

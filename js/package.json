@@ -10,7 +10,7 @@
         "alexa-app": "3.1.0",
         "youtube-search": "1.0.8",
         "ytdl-core": "0.9.1",
-        "request": "2.79.0"
+        "s3": "4.4.0"
     },
     "repository": {
         "type": "git",
