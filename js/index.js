@@ -40,19 +40,36 @@ app.intent("GetVideoIntent", {
             }
             else {
                 var metadata = results[0];
-                if (metadata.link === undefined) {
+                if (metadata.id === undefined) {
                     response.say(query+' did not return any results on YouTube.').send();
                 }
                 else {
-                    lastSearch = metadata.link;
-                    response.say('I have found a video related to '+query+' on YouTube.');
-                    var stream = ytdl(lastSearch, {
-                        filter: function(format) {
-                            return format.container === 'mp3';
+                    lastSearch = metadata.id;
+
+                    var prefix = 'https://dmhacker-youtube.herokuapp.com';
+                    var options = {
+                        hostname: prefix,
+                        path: '/target/'+lastSearch,
+                        method: 'GET',
+                        json: true
+                    };
+                    request(options, function(err, response, body){
+                        if(err) {
+                            console.log(error);
+                            response.say('I could not complete your request at this moment.').send();
+                        }
+                        else {
+                            response.say('I have found a video related to '+query+' on YouTube.');
+                            var streamdata = JSON.parse(body);
+                            var stream = {
+                                "url": prefix+streamdata.link,
+                                "token": "aToken",
+                                "expectedPreviousToken": "aToken",
+                                "offsetInMilliseconds": 0
+                            };
+                            response.audioPlayerPlayStream('REPLACE_ALL', stream).send();
                         }
                     });
-                    response.audioPlayerPlayStream('REPLACE_ALL', stream);
-                    response.send();
                 }
             }
         });
