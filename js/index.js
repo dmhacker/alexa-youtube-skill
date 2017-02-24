@@ -28,7 +28,7 @@ var constants = {
 var lastSearch;
 
 app.pre = function(request, response, type) {
-    if (request.applicationId != "amzn1.ask.skill.e252ffe0-987b-43c2-abec-58050fd7153b") {
+    if (request.applicationId != process.env.ALEXA_APPLICATION_ID) {
         response.fail("Invalid application");
     }
 };
