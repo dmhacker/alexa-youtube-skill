@@ -61,19 +61,15 @@ app.intent("GetVideoIntent", {
                     var tmpfile = require('path').join('/tmp', metadata.id+'.mp3');
                     var key = require('path').join('audio', metadata.id);
 
-                    ytdl(metadata.link, {
-                        filter: function(format) {
-                            return format.container === 'mp3';
-                        }
-                    }).pipe(fs.createWriteStream(tmpfile).on('finish', function () {
-                        var params = {
+                    var writer = fs.createWriteStream(tmpfile);
+                    writer.on('finish', function () {
+                        var uploader = s3Client.uploadFile({
                             localFile: tmpfile,
                             s3Params: {
                                 Bucket: __bucket,
                                 Key: key
                             }
-                        };
-                        var uploader = s3Client.uploadFile(params);
+                        });
                         uploader.on('error', function(err) {
                             response.say('I had trouble downloading this video.').send();
                         });
@@ -90,7 +86,13 @@ app.intent("GetVideoIntent", {
                                 'expectedPreviousToken': constants.expectedPreviousToken
                             }).send();
                         });
-                    }));
+                    });
+
+                    ytdl(metadata.link, {
+                        filter: function(format) {
+                            return format.container === 'mp3';
+                        }
+                    }).pipe(writer);
                 }
             }
         });
