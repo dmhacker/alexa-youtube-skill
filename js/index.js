@@ -1,19 +1,9 @@
 var alexa = require("alexa-app");
 var search = require('youtube-search');
-var ytdl = require('ytdl-core');
-var s3 = require('s3');
 var fs = require('fs');
-
-global.__bucket = process.env.S3_BUCKET;
+var request = require('request');
 
 var app = new alexa.app("youtube");
-
-var s3Client = s3.createClient({
-    s3Options: {
-        accessKeyId: process.env.S3_ACCESS_KEY,
-        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY
-    }
-});
 
 var searchOpts = {
     maxResults: 1,
@@ -28,8 +18,8 @@ var constants = {
 
 var lastSearch;
 
-app.pre = function(request, response, type) {
-    if (request.applicationId != process.env.ALEXA_APPLICATION_ID) {
+app.pre = function(req, response, type) {
+    if (req.applicationId != process.env.ALEXA_APPLICATION_ID) {
         response.fail("Invalid application");
     }
 };
@@ -46,8 +36,8 @@ app.intent("GetVideoIntent", {
             "put on {-|VideoQuery}"
         ]
     },
-    function(request, response) {
-        var query = request.slot("VideoQuery");
+    function(req, response) {
+        var query = req.slot("VideoQuery");
 
         search(query, searchOpts, function(err, results) {
             if (err) {
@@ -62,23 +52,15 @@ app.intent("GetVideoIntent", {
                 } else {
                     response.say('I found a relevant video called '+metadata.title+'.');
 
-                    var tmpfile = require('path').join('/tmp', metadata.id+'.mp3');
-                    var key = require('path').join('audio', metadata.id);
-
-                    var writer = fs.createWriteStream(tmpfile);
-                    writer.on('finish', function () {
-                        var uploader = s3Client.uploadFile({
-                            localFile: tmpfile,
-                            s3Params: {
-                                Bucket: __bucket,
-                                Key: key
-                            }
-                        });
-                        uploader.on('error', function(err) {
+                    var externalDownload = 'https://dmhacker-youtube.herokuapp.com/alexa/'+metadata.id;
+                    request(externalDownload, function (err, res, body) {
+                        if (err) {
+                            console.log(err);
+                            console.log(body);
                             response.fail(err.message);
-                        });
-                        uploader.on('end', function() {
-                            lastSearch = s3.getPublicUrl(__bucket, key);
+                        }
+                        else {
+                            lastSearch = metadata.link;
                             response.card({
                                 'type': 'Simple',
                                 'title': metadata.title,
@@ -89,12 +71,8 @@ app.intent("GetVideoIntent", {
                                 'token': constants.token,
                                 'expectedPreviousToken': constants.expectedPreviousToken
                             }).send();
-                        });
+                        }
                     });
-
-                    ytdl(metadata.link, {
-                        filter: 'audioonly'
-                    }).pipe(writer);
                 }
             }
         });
@@ -103,11 +81,11 @@ app.intent("GetVideoIntent", {
     }
 );
 
-app.intent("AMAZON.PauseIntent", {}, function(request, response) {
+app.intent("AMAZON.PauseIntent", {}, function(req, response) {
     response.audioPlayerStop();
 });
 
-app.intent("AMAZON.ResumeIntent", {}, function(request, response) {
+app.intent("AMAZON.ResumeIntent", {}, function(req, response) {
     if (lastSearch === undefined) {
         response.say('You were not playing any video previously.');
     } else {
@@ -120,7 +98,7 @@ app.intent("AMAZON.ResumeIntent", {}, function(request, response) {
     }
 });
 
-app.intent("AMAZON.StopIntent", {}, function(request, response) {
+app.intent("AMAZON.StopIntent", {}, function(req, response) {
     lastSearch = undefined;
     response.audioPlayerStop();
     response.audioPlayerClearQueue();
