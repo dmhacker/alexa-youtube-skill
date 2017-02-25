@@ -11,11 +11,6 @@ var searchOpts = {
     key: process.env.YOUTUBE_API_KEY
 };
 
-var constants = {
-    'token': 'string',
-    'expectedPreviousToken': 'string'
-};
-
 var lastSearch;
 
 app.pre = function(req, response, type) {
@@ -60,17 +55,19 @@ app.intent("GetVideoIntent", {
                             response.fail(err.message);
                         }
                         else {
-                            lastSearch = metadata.link;
-                            response.card({
-                                'type': 'Simple',
-                                'title': metadata.title,
-                                'content': metadata.link
-                            }).audioPlayerPlayStream('REPLACE_ALL', {
+                            lastSearch = JSON.parse(body).link;
+                            response.audioPlayerPlayStream('REPLACE_ALL', {
                                 'url': lastSearch,
                                 'streamFormat': 'AUDIO_MPEG',
-                                'token': constants.token,
-                                'expectedPreviousToken': constants.expectedPreviousToken
-                            }).send();
+                                'token': metadata.id,
+                                'offsetInMilliseconds': 0
+                            });
+                            response.card({
+                                'type': 'Simple',
+                                'title': 'Search for "'+query+'"',
+                                'content': 'Alexa found "'+metadata.title+'" at '+metadata.link + '.'
+                            });
+                            response.send();
                         }
                     });
                 }
