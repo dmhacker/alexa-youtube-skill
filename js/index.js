@@ -2,6 +2,7 @@ var alexa = require("alexa-app");
 var search = require('youtube-search');
 var ytdl = require('ytdl-core');
 var s3 = require('s3');
+var fs = require('fs');
 
 global.__bucket = process.env.S3_BUCKET;
 
