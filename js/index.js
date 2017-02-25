@@ -93,9 +93,7 @@ app.intent("GetVideoIntent", {
                     });
 
                     ytdl(metadata.link, {
-                        filter: function(format) {
-                            return format.container === 'mp3';
-                        }
+                        filter: 'audioonly'
                     }).pipe(writer);
                 }
             }
