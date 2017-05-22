@@ -14,10 +14,7 @@ var searchOpts = {
 var lastSearch;
 
 app.pre = function(req, response, type) {
-    console.log(JSON.stringify(req));
-    console.log(req.applicationId);
-    console.log(process.env.ALEXA_APPLICATION_ID);
-    if (req.applicationId !== process.env.ALEXA_APPLICATION_ID) {
+    if (req.sessionDetails.application.applicationId !== process.env.ALEXA_APPLICATION_ID) {
         response.fail("Invalid application");
     }
 };
