@@ -50,7 +50,9 @@ app.intent("GetVideoIntent", {
 
                     console.log('Found ... ' + metadata.title);
 
-                    var externalDownload = 'https://dmhacker-youtube.herokuapp.com/alexa/' + metadata.id;
+                    var id = metadata.id;
+                    var externalDownload = 'https://dmhacker-youtube.herokuapp.com/alexa/' + id;
+
                     request(externalDownload, function(err, res, body) {
                         console.log('Processed.');
 
@@ -59,20 +61,26 @@ app.intent("GetVideoIntent", {
                             console.log(body);
                             response.fail(err.message);
                         } else {
-                            lastSearch = JSON.parse(body).link;
-                            var stream = {
-                                'url': lastSearch,
-                                'token': metadata.id,
-                                'offsetInMilliseconds': 0
-                            };
-                            console.dir(stream);
-                            response.audioPlayerPlayStream('REPLACE_ALL', stream);
-                            response.card({
-                                'type': 'Simple',
-                                'title': 'Search for "' + query + '"',
-                                'content': 'Alexa found "' + metadata.title + '" at ' + metadata.link + '.'
+                            recursive_check(id, 2500, function(err) {
+                                if (err) {
+                                    response.fail(err.message);
+                                }
+                                else {
+                                    lastSearch = JSON.parse(body).link;
+                                    var stream = {
+                                        'url': lastSearch,
+                                        'token': metadata.id,
+                                        'offsetInMilliseconds': 0
+                                    };
+                                    response.audioPlayerPlayStream('REPLACE_ALL', stream);
+                                    response.card({
+                                        'type': 'Simple',
+                                        'title': 'Search for "' + query + '"',
+                                        'content': 'Alexa found "' + metadata.title + '" at ' + metadata.link + '.'
+                                    });
+                                    response.send();
+                                }
                             });
-                            response.send();
                         }
                     });
                 }
@@ -82,6 +90,31 @@ app.intent("GetVideoIntent", {
         return false;
     }
 );
+
+function recursive_check(id, delay, callback) {
+    var linkCheck = 'https://dmhacker-youtube.herokuapp.com/alexa-check/' + id;
+    request(linkCheck, function (err, res, body) {
+        if (err) {
+            callback(err);
+        }
+        else {
+            var metadata = JSON.parse(body).metadata;
+            if (!metadata) {
+                callback(err);
+            }
+            else {
+                if (metadata.downloaded) {
+                    callback(null);
+                }
+                else {
+                    setTimeout(function () {
+                        recursive_check(id, delay, callback);
+                    }, delay);
+                }
+            }
+        }
+    });
+}
 
 app.audioPlayer("PlaybackStarted", function(request, response) {
     console.log('Now playing audio clip ...');
