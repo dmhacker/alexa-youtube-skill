@@ -14,7 +14,8 @@ var searchOpts = {
 var lastSearch;
 
 app.pre = function(req, response, type) {
-    if (req.sessionDetails.application.applicationId !== process.env.ALEXA_APPLICATION_ID) {
+    if (req.applicationId !== process.env.ALEXA_APPLICATION_ID &&
+        req.sessionDetails.application.applicationId !== process.env.ALEXA_APPLICATION_ID) {
         response.fail("Invalid application");
     }
 };
@@ -61,7 +62,7 @@ app.intent("GetVideoIntent", {
                             console.log(body);
                             response.fail(err.message);
                         } else {
-                            recursive_check(id, 2500, function(err) {
+                            recursive_check(id, 1000, function(err) {
                                 if (err) {
                                     response.fail(err.message);
                                 }
@@ -72,7 +73,7 @@ app.intent("GetVideoIntent", {
                                         'token': metadata.id,
                                         'offsetInMilliseconds': 0
                                     };
-                                    response.audioPlayerPlayStream('REPLACE_ALL', stream);
+                                    response.audioPlayerPlayStream('ENQUEUE', stream);
                                     response.card({
                                         'type': 'Simple',
                                         'title': 'Search for "' + query + '"',
@@ -129,7 +130,7 @@ app.intent("AMAZON.ResumeIntent", {}, function(req, response) {
     if (lastSearch === undefined) {
         response.say('You were not playing any video previously.');
     } else {
-        response.audioPlayerPlayStream('REPLACE_ALL', {
+        response.audioPlayerPlayStream('ENQUEUE', {
             'url': lastSearch,
             'streamFormat': 'AUDIO_MPEG',
             'token': constants.token,
