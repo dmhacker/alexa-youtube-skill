@@ -72,7 +72,7 @@ app.intent("GetVideoIntent", {
                                         'token': metadata.id,
                                         'offsetInMilliseconds': 0
                                     };
-                                    response.audioPlayerPlayStream('ENQUEUE', stream);
+                                    response.audioPlayerPlayStream('REPLACE_ALL', stream);
                                     response.card({
                                         'type': 'Simple',
                                         'title': 'Search for "' + query + '"',
