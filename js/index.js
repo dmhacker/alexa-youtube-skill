@@ -72,6 +72,7 @@ app.intent("GetVideoIntent", {
                                         'token': metadata.id,
                                         'offsetInMilliseconds': 0
                                     };
+                                    console.log('Stored @ '+lastSearch);
                                     response.audioPlayerPlayStream('REPLACE_ALL', stream);
                                     response.card({
                                         'type': 'Simple',
