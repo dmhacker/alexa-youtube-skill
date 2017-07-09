@@ -25,7 +25,48 @@ Request (1) ➡ AWS Lambda (2) ➡ YouTube API (3) ➡ Custom Heroku Server (4) 
 
 ## Setup Process
 
-WIP
+1. Go on https://developer.amazon.com/ and log in with a developer account. Navigate to the "Alexa" tab and click on "Alexa Skills Kit."
+2. Click on "Add Skill." You will be taken to a setup menu. 
+3. __Skill Information__ page: give the skill a name you choose. For Invocation Name, put 'youtube' and in the Global Fields section, mark that the skill uses audio player directives.
+4. __Interaction Model__ page: put the following under Intent Schema. 
+```
+{
+  "intents": [
+    {
+      "slots": [
+        {
+          "name": "VideoQuery",
+          "type": "VIDEOS"
+        }
+      ],
+      "intent": "GetVideoIntent"
+    },
+    {
+      "intent": "AMAZON.PauseIntent"
+    },
+    {
+      "intent": "AMAZON.ResumeIntent"
+    },
+    {
+      "intent": "AMAZON.StopIntent"
+    }
+  ]
+}
+```
+Then, add a custom slot type called VIDEOS. Put some random phrases that you might think might commonly be searched on YouTube under values. Next, in the Sample Utterances section, put this.
+```
+GetVideoIntent search for {VideoQuery}
+GetVideoIntent find {VideoQuery}
+GetVideoIntent play {VideoQuery}
+GetVideoIntent start playing {VideoQuery}
+GetVideoIntent put on {VideoQuery}
+```
+5. __Configuration__ page: under Endpoint, select __AWS Lambda ARN (Amazon Resource Name)__ as the Service Endpoint Type. Select North America/Europe depending on where you are. In the field that pops up, leave that blank for now. We will come back to that once the skill has been uploaded to Lambda. Also, under Account Linking, make sure that 'no' is checked.
+6. We will now be moving on from Amazon Developer and will be setting up the YouTube API. Follow [this guide](https://developers.google.com/youtube/v3/getting-started) to get an API key.
+7. Now it's time to set up Lambda. Log on to your AWS account and select "Lambda" from the main console menu. Make sure your region is set to N. Virginia (if you are using your skill in North America). 
+8. Click on "Create a Lambda function" in the Lambda console menu. For the blueprint, select __alexa-skills-kit-color-expert__.
+9. Configure the function. Give it a name like "alexaYoutubeSkill" and fill in an appropriate description. Assign it to a role with at least S3 read permissions. Leave the rest the default skill for now.
+
 
 
 
