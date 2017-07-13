@@ -80,6 +80,7 @@ app.intent("GetVideoIntent", {
                                         'content': 'Alexa found "' + metadata.title + '" at ' + metadata.link + '.'
                                     });
                                     response.send();
+                                    console.log('Response sent to Alexa.');
                                 }
                             });
                         }
