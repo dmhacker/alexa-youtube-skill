@@ -41,11 +41,19 @@ app.intent("GetVideoIntent", {
                 if (err) {
                     reject(err.message);
                 } else if (results.length !== 1) {
-                    resolve('I could not complete your request at this moment.', null, null);
+                    resolve({
+                        message: 'I could not complete your request at this moment.',
+                        url: null,
+                        metadata: null
+                    });
                 } else {
                     var metadata = results[0];
                     if (metadata.id === undefined) {
-                        resolve(query + ' did not return any results on YouTube.', null, null);
+                        resolve({
+                            message: query + ' did not return any results on YouTube.',
+                            url: null,
+                            metadata: null
+                        });
                     } else {
                         console.log('Found ... ' + metadata.title);
                         var id = metadata.id;
@@ -62,7 +70,11 @@ app.intent("GetVideoIntent", {
                                     else {
                                         lastSearch = JSON.parse(body).link;
                                         console.log('Stored @ '+lastSearch);
-                                        resolve('I found a relevant video called ' + metadata.title + '.', lastSearch, metadata);
+                                        resolve({
+                                            message: 'I found a relevant video called ' + metadata.title + '.',
+                                            url: lastSearch,
+                                            metadata: metadata
+                                        });
                                     }
                                 });
                             }
@@ -70,15 +82,17 @@ app.intent("GetVideoIntent", {
                     }
                 }
             });
-        }).then(function (message, streamUrl, metadata) {
+        }).then(function (content) {
+            var message = content.message;
+            var streamUrl = content.url;
+            var metadata = content.metadata;
             response.say(message);
             if (streamUrl) {
-                var stream = {
+                response.audioPlayerPlayStream('REPLACE_ALL', {
                     'url': streamUrl,
                     'token': metadata.id,
                     'offsetInMilliseconds': 0
-                };
-                response.audioPlayerPlayStream('REPLACE_ALL', stream);
+                });
                 response.card({
                     'type': 'Simple',
                     'title': 'Search for "' + query + '"',
