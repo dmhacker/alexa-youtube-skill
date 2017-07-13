@@ -7,9 +7,9 @@
     },
     "main": "index.js",
     "dependencies": {
-        "alexa-app": "3.1.0",
-        "youtube-search": "1.0.8",
-        "request": "2.79.0"
+        "alexa-app": "4.0.1",
+        "youtube-search": "1.0.10",
+        "request": "2.81.0"
     },
     "repository": {
         "type": "git",

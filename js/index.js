@@ -14,7 +14,7 @@ var searchOpts = {
 var lastSearch;
 
 app.pre = function(req, response, type) {
-    if (req.sessionDetails.application.applicationId !== process.env.ALEXA_APPLICATION_ID) {
+    if (req.applicationId !== process.env.ALEXA_APPLICATION_ID) {
         response.fail("Invalid application");
     }
 };
@@ -118,8 +118,13 @@ function recursive_check(id, delay, callback) {
 }
 
 app.audioPlayer("PlaybackStarted", function(request, response) {
-    console.log('Now playing audio clip ...');
-    console.dir(request);
+    console.log('Playback started.');
+    console.log(request);
+});
+
+app.audioPlayer("PlaybackFailed", function(request, response) {
+    console.log('Playback failed.');
+    console.log(request);
 });
 
 app.intent("AMAZON.PauseIntent", {}, function(req, response) {
