@@ -133,12 +133,11 @@ function recursive_check(id, delay, callback) {
 
 app.audioPlayer("PlaybackStarted", function(request, response) {
     console.log('Playback started.');
-    console.log(request);
 });
 
 app.audioPlayer("PlaybackFailed", function(request, response) {
     console.log('Playback failed.');
-    console.log(request);
+    console.log(request.data.request.error);
 });
 
 app.intent("AMAZON.PauseIntent", {}, function(req, response) {
