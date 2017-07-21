@@ -137,6 +137,7 @@ app.audioPlayer("PlaybackStarted", function(request, response) {
 
 app.audioPlayer("PlaybackFailed", function(request, response) {
     console.log('Playback failed.');
+    console.log(request.data.request);
     console.log(request.data.request.error);
 });
 
