@@ -54,7 +54,7 @@ GetVideoIntent put on {VideoQuery}
 10. Click [here](https://s3-us-west-1.amazonaws.com/alexa-youtube-skill/lambda/alexa-youtube-skill.zip) to download __alexa-youtube-skill.zip__, which contains all the code for the Lambda server. 
       * The zip file is recompiled from this repository ever hour. If you want to verify the build date, open the zip file and look for _timestamp.txt_.
 11. Now, go back to the Lambda function you just saved. Under "Code entry type," select "Upload a ZIP file." Then, upload alexa-youtube-skill.zip under "Function Package." 
-12. You will now need to enter 2 environment variables. Enter these in (without the curly braces):
+12. You will now need to enter 2 environment variables. Enter these in:
 
 | Key                  | Value                                                               |
 | -------------------- | ------------------------------------------------------------------- |
