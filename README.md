@@ -66,14 +66,13 @@ GetVideoIntent put on {VideoQuery}
 7. Now it's time to set up Lambda. Log on to your AWS account and select "Lambda" from the main console menu. Make sure your region is set to N. Virginia (if you are using your skill in North America). 
 8. Click on "Create a Lambda function" in the Lambda console menu. For the blueprint, select __alexa-skills-kit-color-expert__.
 9. Configure the function. Give it a name like "alexaYoutubeSkill" and fill in an appropriate description. Assign it to a role with at least S3 read permissions. Leave the rest the default skill for now.
-10. Next, on your local machine, clone this repository using git. Change directory into it.
-11. Click on [this link](https://s3-us-west-1.amazonaws.com/alexa-youtube-skill/lambda/alexa-youtube-skill.zip) to download alexa-youtube-skill.zip, which contains all the code for the Lambda server. The zip file is recompiled from this repository ever hour. If you want to verify the build date, open the zip file and look for "timestamp.txt".
-12. Now, go back to the Lambda function you just saved. Under "Code entry type," select "Upload a ZIP file." Then, upload alexa-youtube-skill.zip under "Function Package." 
-13. You will now need to enter 2 environment variables. These are:
+10. Click [here](https://s3-us-west-1.amazonaws.com/alexa-youtube-skill/lambda/alexa-youtube-skill.zip) to download alexa-youtube-skill.zip, which contains all the code for the Lambda server. The zip file is recompiled from this repository ever hour. If you want to verify the build date, open the zip file and look for "timestamp.txt".
+11. Now, go back to the Lambda function you just saved. Under "Code entry type," select "Upload a ZIP file." Then, upload alexa-youtube-skill.zip under "Function Package." 
+12. You will now need to enter 2 environment variables. These are:
       * ALEXA_APPLICATION_ID - found under Skill Information under your skill in Amazon Developer 
       * YOUTUBE_API_KEY - the YouTube API key you found earlier
-14. The last step is linking your Lambda function to your Alexa skill. Go back to Alexa under Amazon Developer and find your skill. In the __Configuration__ page, put the Lambda ARN name in the blank spot that you left earlier.
-15. Go to the __Test__ page and set Enabled to true. The skill will now work exclusively on your devices.
+13. The last step is linking your Lambda function to your Alexa skill. Go back to Alexa under Amazon Developer and find your skill. In the __Configuration__ page, put the Lambda ARN name in the blank spot that you left earlier.
+14. Go to the __Test__ page and set Enabled to true. The skill will now work exclusively on your devices.
 
 
 
