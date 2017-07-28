@@ -12,7 +12,7 @@ Alexa will then do a search, finding the most relevant video that matches the qu
 
 The way the skill searches, downloads, and fetches the audio is very complicated because it relies on several free utilities. The basic flow of information through the skill could be summarized as this:
 
-Request (1) ➡ AWS Lambda (2) ➡ YouTube API (3) ➡ Custom Heroku Server (4) ➡ AWS S3 (5) ➡ User (6)
+Request __(1)__ -> AWS Lambda __(2)__ -> YouTube API __(3)__ -> Custom Heroku Server __(4)__ -> AWS S3 __(5)__ -> User __(6)__
 
 1. The user makes a request mentioning the skill. See the summary for an example.
 2. The skill, which is being run on an AWS Lambda server, receives the query.
@@ -66,11 +66,12 @@ GetVideoIntent put on {VideoQuery}
 7. Now it's time to set up Lambda. Log on to your AWS account and select "Lambda" from the main console menu. Make sure your region is set to N. Virginia (if you are using your skill in North America). 
 8. Click on "Create a Lambda function" in the Lambda console menu. For the blueprint, select __alexa-skills-kit-color-expert__.
 9. Configure the function. Give it a name like "alexaYoutubeSkill" and fill in an appropriate description. Assign it to a role with at least S3 read permissions. Leave the rest the default skill for now.
-10. Click [here](https://s3-us-west-1.amazonaws.com/alexa-youtube-skill/lambda/alexa-youtube-skill.zip) to download alexa-youtube-skill.zip, which contains all the code for the Lambda server. The zip file is recompiled from this repository ever hour. If you want to verify the build date, open the zip file and look for "timestamp.txt".
+10. Click [here](https://s3-us-west-1.amazonaws.com/alexa-youtube-skill/lambda/alexa-youtube-skill.zip) to download alexa-youtube-skill.zip, which contains all the code for the Lambda server. 
+      * The zip file is recompiled from this repository ever hour. If you want to verify the build date, open the zip file and look for _timestamp.txt_.
 11. Now, go back to the Lambda function you just saved. Under "Code entry type," select "Upload a ZIP file." Then, upload alexa-youtube-skill.zip under "Function Package." 
-12. You will now need to enter 2 environment variables. These are:
-      * ALEXA_APPLICATION_ID - found under Skill Information under your skill in Amazon Developer 
-      * YOUTUBE_API_KEY - the YouTube API key you found earlier
+12. You will now need to enter 2 environment variables. Enter these in (without the curly braces):
+      * key={ALEXA_APPLICATION_ID} | value={found under Skill Information under your skill in Amazon Developer}
+      * key={YOUTUBE_API_KEY} | value={the YouTube API key you found earlier}
 13. The last step is linking your Lambda function to your Alexa skill. Go back to Alexa under Amazon Developer and find your skill. In the __Configuration__ page, put the Lambda ARN name in the blank spot that you left earlier.
 14. Go to the __Test__ page and set Enabled to true. The skill will now work exclusively on your devices.
 
