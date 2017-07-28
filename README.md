@@ -55,8 +55,12 @@ GetVideoIntent put on {VideoQuery}
       * The zip file is recompiled from this repository ever hour. If you want to verify the build date, open the zip file and look for _timestamp.txt_.
 11. Now, go back to the Lambda function you just saved. Under "Code entry type," select "Upload a ZIP file." Then, upload alexa-youtube-skill.zip under "Function Package." 
 12. You will now need to enter 2 environment variables. Enter these in (without the curly braces):
-      * key={ALEXA_APPLICATION_ID} | value={found under Skill Information under your skill in Amazon Developer}
-      * key={YOUTUBE_API_KEY} | value={the YouTube API key you found earlier}
+
+      | Key                  | Value                                                               |
+      | -------------------- | ------------------------------------------------------------------- |
+      | ALEXA_APPLICATION_ID | found under Skill Information under your skill in Amazon Developer  |
+      | YOUTUBE_API_KEY      | the YouTube API key you found earlier                               |
+      
 13. The last step is linking your Lambda function to your Alexa skill. Go back to Alexa under Amazon Developer and find your skill. In the __Configuration__ page, put the Lambda ARN name in the blank spot that you left earlier.
 14. Go to the __Test__ page and set Enabled to true. The skill will now work exclusively on your devices.
 
