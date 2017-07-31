@@ -14,8 +14,15 @@ var searchOpts = {
 var lastSearch;
 
 app.pre = function(req, response, type) {
-    if (req.applicationId !== process.env.ALEXA_APPLICATION_ID) {
-        response.fail("Invalid application");
+    if (req.data.session !== undefined) {
+        if (req.data.session.application.applicationId !== process.env.ALEXA_APPLICATION_ID) {
+            response.fail("Invalid application");
+        }
+    }
+    else {
+        if (req.applicationId !== process.env.ALEXA_APPLICATION_ID) {
+            response.fail("Invalid application");
+        }
     }
 };
 
