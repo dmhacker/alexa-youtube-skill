@@ -1,20 +1,23 @@
 {
-    "name": "alexa-youtube-skill",
-    "version": "1.0.0",
-    "description": "You can search YouTube for video audio now!",
-    "engines": {
-        "node": "5.9.1"
-    },
-    "main": "index.js",
-    "dependencies": {
-        "alexa-app": "4.0.1",
-        "youtube-search": "1.0.10",
-        "request": "2.81.0"
-    },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/dmhacker/alexa-youtube-skill"
-    },
-    "keywords": ["alexa", "youtube"],
-    "license": "MIT"
+  "name": "alexa-youtube-skill",
+  "version": "1.0.0",
+  "description": "You can search YouTube for video audio now!",
+  "engines": {
+    "node": "5.9.1"
+  },
+  "main": "index.js",
+  "dependencies": {
+    "alexa-app": "4.0.1",
+    "request": "2.81.0",
+    "youtube-search": "1.0.10"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dmhacker/alexa-youtube-skill"
+  },
+  "keywords": [
+    "alexa",
+    "youtube"
+  ],
+  "license": "MIT"
 }

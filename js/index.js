@@ -32,79 +32,102 @@ app.intent("GetVideoIntent", {
         ]
     },
     function(req, response) {
-        var query = req.slot("VideoQuery");
+        return get_executable_promise(req, response, 'english');
+    }
+);
 
-        console.log('Searching ... ' + query);
+app.intent("GetVideoGermanIntent", {
+        "slots": {
+            "VideoQuery": "VIDEOS",
+        },
+        "utterances": [
+            "suchen nach {-|VideoQuery}",
+            "finde {-|VideoQuery}",
+            "spielen {-|VideoQuery}",
+            "anfangen zu spielen {-|VideoQuery}",
+            "anziehen {-|VideoQuery}"
+        ]
+    },
+    function(req, response) {
+        return get_executable_promise(req, response, 'german');
+    }
+);
 
-        return new Promise((resolve, reject) => {
-            search(query, searchOpts, function(err, results) {
-                if (err) {
-                    reject(err.message);
-                } else if (results.length !== 1) {
+function get_executable_promise(req, response, language) {
+
+    var query = req.slot("VideoQuery");
+
+    console.log('Searching ... ' + query);
+
+    return new Promise((resolve, reject) => {
+
+        search(query, searchOpts, function(err, results) {
+            if (err) {
+                reject(err.message);
+            } else if (results.length !== 1) {
+                resolve({
+                    message: language === 'german' ? 'Ich konnte deine Bitte in diesem Moment nicht abschließen.' : 'I could not complete your request at this moment.',
+                    url: null,
+                    metadata: null
+                });
+            } else {
+                var metadata = results[0];
+                if (metadata.id === undefined) {
                     resolve({
-                        message: 'I could not complete your request at this moment.',
+                        message: language === 'german' ? 'Keine Ergebnisse auf Youtube gefunden.' : query + ' did not return any results on YouTube.',
                         url: null,
                         metadata: null
                     });
                 } else {
-                    var metadata = results[0];
-                    if (metadata.id === undefined) {
-                        resolve({
-                            message: query + ' did not return any results on YouTube.',
-                            url: null,
-                            metadata: null
-                        });
-                    } else {
-                        console.log('Found ... ' + metadata.title);
-                        var id = metadata.id;
-                        var externalDownload = 'https://dmhacker-youtube.herokuapp.com/alexa/' + id;
-                        request(externalDownload, function(err, res, body) {
-                            console.log('Processed.');
-                            if (err) {
-                                reject(err.message);
-                            } else {
-                                recursive_check(id, 1000, function(err) {
-                                    if (err) {
-                                        reject(err.message);
-                                    }
-                                    else {
-                                        lastSearch = JSON.parse(body).link;
-                                        console.log('Stored @ '+lastSearch);
-                                        resolve({
-                                            message: 'I found a relevant video called ' + metadata.title + '.',
-                                            url: lastSearch,
-                                            metadata: metadata
-                                        });
-                                    }
-                                });
-                            }
-                        });
-                    }
+                    console.log('Found ... ' + metadata.title);
+                    var id = metadata.id;
+                    var externalDownload = 'https://dmhacker-youtube.herokuapp.com/alexa/' + id;
+                    request(externalDownload, function(err, res, body) {
+                        console.log('Processed.');
+                        if (err) {
+                            reject(err.message);
+                        } else {
+                            recursive_check(id, 1000, function(err) {
+                                if (err) {
+                                    reject(err.message);
+                                }
+                                else {
+                                    lastSearch = JSON.parse(body).link;
+                                    console.log('Stored @ '+lastSearch);
+                                    resolve({
+                                        message: language === 'german' ? 'Ich fand ein relevantes Video namens ' + metadata.title + '.' : 'I found a relevant video called ' + metadata.title + '.',
+                                        url: lastSearch,
+                                        metadata: metadata
+                                    });
+                                }
+                            });
+                        }
+                    });
                 }
-            });
-        }).then(function (content) {
-            var message = content.message;
-            var streamUrl = content.url;
-            var metadata = content.metadata;
-            response.say(message);
-            if (streamUrl) {
-                response.audioPlayerPlayStream('REPLACE_ALL', {
-                    'url': streamUrl,
-                    'token': metadata.id,
-                    'offsetInMilliseconds': 0
-                });
-                response.card({
-                    'type': 'Simple',
-                    'title': 'Search for "' + query + '"',
-                    'content': 'Alexa found "' + metadata.title + '" at ' + metadata.link + '.'
-                });
             }
-            response.send();
-        }).catch(function(reason) {
-            response.fail(reason);
         });
-    }
-);
+    }).then(function (content) {
+        var message = content.message;
+        var streamUrl = content.url;
+        var metadata = content.metadata;
+        response.say(message);
+        if (streamUrl) {
+            response.audioPlayerPlayStream('REPLACE_ALL', {
+                'url': streamUrl,
+                'token': metadata.id,
+                'offsetInMilliseconds': 0
+            });
+            response.card({
+                'type': 'Simple',
+                'title': 'Search for "' + query + '"',
+                'content': 'Alexa found "' + metadata.title + '" at ' + metadata.link + '.'
+            });
+        }
+        response.send();
+    }).catch(function(reason) {
+        response.fail(reason);
+    });
+}
 
 function recursive_check(id, delay, callback) {
     var linkCheck = 'https://dmhacker-youtube.herokuapp.com/alexa-check/' + id;
