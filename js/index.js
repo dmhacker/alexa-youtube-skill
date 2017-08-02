@@ -113,6 +113,7 @@ function get_executable_promise(req, response, language) {
         if (streamUrl) {
             response.audioPlayerPlayStream('REPLACE_ALL', {
                 'url': streamUrl,
+                'streamFormat': 'AUDIO_MP3',
                 'token': metadata.id,
                 'offsetInMilliseconds': 0
             });
