@@ -1,5 +1,7 @@
 # alexa-youtube-skill
 
+__DISCLAIMER:__ This skill is not officially supported by YouTube in any way and, as such, will never be published on Amazon. It is more intended as a proof-of-concept, but instructions on setting it up are provided.
+
 By default, Amazon Alexa does not support playing audio from YouTube. In fact, it only supports a limited number of third-party audio-based skills like Spotify music. Otherwise, all default Alexa skills that use audio are tied almost exclusively to Amazon services.
 
 __alexa-youtube-skill__ contains the code for an unpublished skill that allows users to search and play audio from YouTube. For example, a user might say:
@@ -60,9 +62,10 @@ GetVideoIntent put on {VideoQuery}
 | -------------------- | ------------------------------------------------------------------- |
 | ALEXA_APPLICATION_ID | found under Skill Information under your skill in Amazon Developer  |
 | YOUTUBE_API_KEY      | the YouTube API key you found earlier                               |
-      
-13. The last step is linking your Lambda function to your Alexa skill. Go back to Alexa under Amazon Developer and find your skill. In the __Configuration__ page, put the Lambda ARN name in the blank spot that you left earlier.
-14. Go to the __Test__ page and set Enabled to true. The skill will now work exclusively on your devices.
+  
+13. Additionally, under "Advanced Settings" in your Lambda server, go to the "Timeout" section. Change the timeout duration from 3 seconds to >= 1 minute.
+14. The last step is linking your Lambda function to your Alexa skill. Go back to Alexa under Amazon Developer and find your skill. In the __Configuration__ page, put the Lambda ARN name in the blank spot that you left earlier.
+15. Go to the __Test__ page and set Enabled to true. The skill will now work exclusively on your devices.
 
 ## Technical Details
 
