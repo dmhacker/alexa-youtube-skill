@@ -48,6 +48,14 @@ GetVideoIntent play {VideoQuery}
 GetVideoIntent start playing {VideoQuery}
 GetVideoIntent put on {VideoQuery}
 ```
+4b. Note for German users, under Intent Schema, replace "GetVideoIntent" with "GetVideoGermanIntent". Substitute this in replace of the English commands:
+```
+GetVideoGermanIntent suchen nach {VideoQuery}
+GetVideoGermanIntent finde {VideoQuery}
+GetVideoGermanIntent spielen {VideoQuery}
+GetVideoGermanIntent anfangen zu spielen {VideoQuery}
+GetVideoGermanIntent anziehen {VideoQuery}
+```
 5. __Configuration__ page: under Endpoint, select __AWS Lambda ARN (Amazon Resource Name)__ as the Service Endpoint Type. Select North America/Europe depending on where you are. In the field that pops up, leave that blank for now. We will come back to that once the skill has been uploaded to Lambda. Also, under Account Linking, make sure that 'no' is checked.
 6. We will now be moving on from Amazon Developer and will be setting up the YouTube API. Follow [this guide](https://developers.google.com/youtube/v3/getting-started) to get an API key.
 7. Now it's time to set up Lambda. Log on to your AWS account and select "Lambda" from the main console menu. Make sure your region is set to N. Virginia (if you are using your skill in North America). 
