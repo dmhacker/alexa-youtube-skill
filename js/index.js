@@ -90,23 +90,15 @@ function get_executable_promise(req, response, language) {
                     var id = metadata.id;
                     var externalDownload = 'https://dmhacker-youtube.herokuapp.com/alexa/' + id;
                     request(externalDownload, function(err, res, body) {
-                        console.log('Processed.');
                         if (err) {
                             reject(err.message);
                         } else {
-                            recursive_check(id, 1000, function(err) {
-                                if (err) {
-                                    reject(err.message);
-                                }
-                                else {
-                                    lastSearch = JSON.parse(body).link;
-                                    console.log('Stored @ '+lastSearch);
-                                    resolve({
-                                        message: language === 'german' ? 'Ich fand ein relevantes Video namens ' + metadata.title + '.' : 'I found a relevant video called ' + metadata.title + '.',
-                                        url: lastSearch,
-                                        metadata: metadata
-                                    });
-                                }
+                            lastSearch = JSON.parse(body).link;
+                            console.log('Stored @ '+lastSearch);
+                            resolve({
+                                message: language === 'german' ? 'Ich fand ein relevantes Video namens ' + metadata.title + '.' : 'I found a relevant video called ' + metadata.title + '.',
+                                url: lastSearch,
+                                metadata: metadata
                             });
                         }
                     });
@@ -133,31 +125,6 @@ function get_executable_promise(req, response, language) {
         response.send();
     }).catch(function(reason) {
         response.fail(reason);
-    });
-}
-
-function recursive_check(id, delay, callback) {
-    var linkCheck = 'https://dmhacker-youtube.herokuapp.com/alexa-check/' + id;
-    request(linkCheck, function (err, res, body) {
-        if (err) {
-            callback(err);
-        }
-        else {
-            var metadata = JSON.parse(body).metadata;
-            if (!metadata) {
-                callback(err);
-            }
-            else {
-                if (metadata.downloaded) {
-                    callback(null);
-                }
-                else {
-                    setTimeout(function () {
-                        recursive_check(id, delay, callback);
-                    }, delay);
-                }
-            }
-        }
     });
 }
 
