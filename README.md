@@ -79,14 +79,13 @@ GetVideoGermanIntent anziehen {VideoQuery}
 
 The way the skill searches, downloads, and fetches the audio is very complicated because it relies on several free utilities. The basic flow of information through the skill could be summarized as this:
 
-Request __(1)__ -> AWS Lambda __(2)__ -> YouTube API __(3)__ -> Custom Heroku Server __(4)__ -> AWS S3 __(5)__ -> User __(6)__
+Request __(1)__ -> AWS Lambda __(2)__ -> YouTube API __(3)__ -> Custom Heroku Server __(4)__ -> User __(5)__
 
 1. The user makes a request mentioning the skill. See the summary for an example.
 2. The skill, which is being run on an AWS Lambda server, receives the query.
 3. The skill then makes a request to the YouTube API, which then asynchronously returns the YouTube ID of the most relevant video. 
-4. Once the skill has the video ID, it sends that to [a custom Heroku server that I built](https://github.com/dmhacker/dmhacker-youtube). The Heroku server takes the video ID, downloads the audio, and puts it into an S3 bucket. 
-5. Once the video has been uploaded to the S3 bucket by the Heroku server, the request will return with a link to the audio.
-6. The skill will then send a PlayRequest to the user's Alexa with the link to the MP3 file. 
+4. Once the skill has the video ID, it sends that to [a custom Heroku server that I built](https://github.com/dmhacker/dmhacker-youtube). The Heroku server takes the video ID, downloads the audio into a temporary public folder and returns the link to the audio.
+5. The skill will then send a PlayRequest to the user's Alexa with the link to the MP3 file. 
 
 
 
