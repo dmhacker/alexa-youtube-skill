@@ -41,7 +41,7 @@ app.intent("GetVideoIntent", {
         ]
     },
     function(req, response) {
-        return get_executable_promise(req, response, 'english');
+        return get_executable_promise(req, response, 'en-US');
     }
 );
 
@@ -58,7 +58,7 @@ app.intent("GetVideoGermanIntent", {
         ]
     },
     function(req, response) {
-        return get_executable_promise(req, response, 'german');
+        return get_executable_promise(req, response, 'de-DE');
     }
 );
 
@@ -76,7 +76,7 @@ function get_executable_promise(req, response, language) {
             var bodyJSON = JSON.parse(body);
             if (bodyJSON.status === 'error' && bodyJSON.message === 'No results found') {
                 resolve({
-                    message: language === 'german' ? 'Keine Ergebnisse auf Youtube gefunden.' : query + ' did not return any results on YouTube.',
+                    message: language === 'de-DE' ? 'Keine Ergebnisse auf Youtube gefunden.' : query + ' did not return any results on YouTube.',
                     url: null,
                     metadata: null
                 });
@@ -87,7 +87,7 @@ function get_executable_promise(req, response, language) {
                 var metadata = bodyJSON.info;
                 lastToken = metadata.id;
                 resolve({
-                    message: language === 'german' ? 'Ich spiele jetzt ' + metadata.title + '.' : 'I am now playing ' + metadata.title + '.',
+                    message: language === 'de-DE' ? 'Ich spiele jetzt ' + metadata.title + '.' : 'I am now playing ' + metadata.title + '.',
                     url: lastSearch,
                     metadata: metadata
                 });
