@@ -66,6 +66,8 @@ function get_executable_promise(req, response, language) {
 
     console.log('Searching ... ' + query);
 
+    response.say(language === 'german' ? 'Suchen ...' : 'Searching ...');
+
     return new Promise((resolve, reject) => {
 
         search(query, searchOpts, function(err, results) {
@@ -96,7 +98,7 @@ function get_executable_promise(req, response, language) {
                             lastSearch = JSON.parse(body).link;
                             console.log('Stored @ '+lastSearch);
                             resolve({
-                                message: language === 'german' ? 'Ich fand ein relevantes Video namens ' + metadata.title + '.' : 'I found a relevant video called ' + metadata.title + '.',
+                                message: language === 'german' ? 'Läuft gerade: ' + metadata.title : 'Now playing: ' + metadata.title,
                                 url: lastSearch,
                                 metadata: metadata
                             });
