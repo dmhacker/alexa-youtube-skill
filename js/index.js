@@ -113,6 +113,7 @@ function get_executable_promise(req, response, language) {
         if (streamUrl) {
             response.audioPlayerPlayStream('REPLACE_ALL', {
                 'url': streamUrl,
+                'streamFormat': 'AUDIO_MPEG',
                 'token': metadata.id,
                 'offsetInMilliseconds': 0
             });
@@ -150,7 +151,8 @@ app.intent("AMAZON.ResumeIntent", {}, function(req, response) {
             'url': lastSearch,
             'streamFormat': 'AUDIO_MPEG',
             'token': constants.token,
-            'expectedPreviousToken': constants.expectedPreviousToken
+            'expectedPreviousToken': constants.expectedPreviousToken,
+            'offsetInMilliseconds': 0
         });
     }
 });
