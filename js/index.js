@@ -10,6 +10,10 @@ if (!herokuAppUrl || herokuAppUrl === 0) {
 }
 
 var lastSearch;
+var lastToken;
+
+var lastPlaybackStart;
+var lastPlaybackStop;
 
 app.pre = function(req, response, type) {
     if (req.data.session !== undefined) {
@@ -59,7 +63,6 @@ app.intent("GetVideoGermanIntent", {
 );
 
 function get_executable_promise(req, response, language) {
-
     var query = req.slot("VideoQuery");
 
     console.log('Searching ... ' + query);
@@ -82,6 +85,7 @@ function get_executable_promise(req, response, language) {
                 lastSearch = herokuAppUrl + bodyJSON.link;
                 console.log('Stored @ '+lastSearch);
                 var metadata = bodyJSON.info;
+                lastToken = metadata.id;
                 resolve({
                     message: language === 'german' ? 'Ich spiele jetzt ' + metadata.title + '.' : 'I am now playing ' + metadata.title + '.',
                     url: lastSearch,
@@ -109,43 +113,61 @@ function get_executable_promise(req, response, language) {
             });
         }
         response.send();
+        lastPlaybackStart = new Date().getTime();
     }).catch(function(reason) {
         response.fail(reason);
     });
 }
 
-app.audioPlayer("PlaybackStarted", function(request, response) {
+app.audioPlayer("PlaybackStarted", function(req, response) {
     console.log('Playback started.');
 });
 
-app.audioPlayer("PlaybackFailed", function(request, response) {
+app.audioPlayer("PlaybackFailed", function(req, response) {
     console.log('Playback failed.');
-    console.log(request.data.request);
-    console.log(request.data.request.error);
+    console.log(req.data.request);
+    console.log(req.data.request.error);
 });
 
 app.intent("AMAZON.PauseIntent", {}, function(req, response) {
     response.audioPlayerStop();
+    lastPlaybackStop = new Date().getTime();
+    response.send();
 });
 
 app.intent("AMAZON.ResumeIntent", {}, function(req, response) {
     if (lastSearch === undefined) {
-        response.say('You were not playing any video previously.');
+        response.say(req.data.request.locale === 'de-DE' ? 'Sie spielen derzeit nichts.' : 'You are not playing anything currently.');
     } else {
-        response.audioPlayerPlayStream('ENQUEUE', {
+        response.audioPlayerPlayStream('REPLACE_ALL', {
             'url': lastSearch,
             'streamFormat': 'AUDIO_MPEG',
-            'token': constants.token,
-            'expectedPreviousToken': constants.expectedPreviousToken,
-            'offsetInMilliseconds': 0
+            'token': lastToken,
+            'offsetInMilliseconds': lastPlaybackStop - lastPlaybackStart
         });
     }
+    response.send();
 });
 
 app.intent("AMAZON.StopIntent", {}, function(req, response) {
     lastSearch = undefined;
     response.audioPlayerStop();
     response.audioPlayerClearQueue();
+    response.send();
 });
+
+app.intent("AMAZON.RepeatIntent", {}, function(req, response) {
+    if (lastSearch === undefined) {
+        response.say(req.data.request.locale === 'de-DE' ? 'Sie haben vorher kein Video gespielt.' : 'You were not playing any video previously.');
+    } else {
+        response.audioPlayerPlayStream('REPLACE_ALL', {
+            'url': lastSearch,
+            'streamFormat': 'AUDIO_MPEG',
+            'token': lastToken,
+            'offsetInMilliseconds': 0
+        });
+    }
+    response.send();
+})
 
 exports.handler = app.lambda();
