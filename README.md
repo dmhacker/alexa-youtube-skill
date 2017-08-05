@@ -95,7 +95,7 @@ ultra nate
 | -------------------- | ------------------------------------------------------------------- |
 | ALEXA_APPLICATION_ID | found under Skill Information under your skill in Amazon Developer  |
 | YOUTUBE_API_KEY      | the YouTube API key you found earlier                               |
-| HEROKU_APP_URL       | __OPTIONAL__ the URL for the Heroku intermediary server. Defaults to 'https://dmhacker-youtube.herokuapp.com' if this variable is not included. Otherwise, you can choose to [setup and use your own server](https://github.com/dmhacker/dmhacker-youtube). |
+| HEROKU_APP_URL       | __OPTIONAL__ the URL for the Heroku intermediary server. Defaults to https://dmhacker-youtube.herokuapp.com if this variable is not included. Otherwise, you can choose to [setup and use your own server](https://github.com/dmhacker/dmhacker-youtube). |
   
 14. Additionally, under "Advanced Settings" in your Lambda server, go to the "Timeout" section. Change the timeout duration from 3 seconds to >= 1 minute.
 15. The last step is linking your Lambda function to your Alexa skill. Go back to Alexa under Amazon Developer and find your skill. In the __Configuration__ page, put the Lambda ARN name in the blank spot that you left earlier.
