@@ -96,7 +96,7 @@ function get_executable_promise(req, response, language) {
                             lastSearch = JSON.parse(body).link;
                             console.log('Stored @ '+lastSearch);
                             resolve({
-                                message: language === 'german' ? 'Läuft gerade: ' + metadata.title : 'Now playing: ' + metadata.title,
+                                message: language === 'german' ? 'Ich spiele jetzt ' + metadata.title + '.' : 'I am now playing ' + metadata.title + '.',
                                 url: lastSearch,
                                 metadata: metadata
                             });
