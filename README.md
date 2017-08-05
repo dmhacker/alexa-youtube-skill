@@ -40,7 +40,7 @@ Alexa will then do a search, finding the most relevant video that matches the qu
   ]
 }
 ```
-Then, add a custom slot type called VIDEOS. Put some random phrases that you might think might commonly be searched on YouTube under values. Next, in the Sample Utterances section, put this.
+Next, in the Sample Utterances section, put this.
 ```
 GetVideoIntent search for {VideoQuery}
 GetVideoIntent find {VideoQuery}
@@ -56,24 +56,49 @@ GetVideoGermanIntent spielen {VideoQuery}
 GetVideoGermanIntent anfangen zu spielen {VideoQuery}
 GetVideoGermanIntent anziehen {VideoQuery}
 ```
-5. __Configuration__ page: under Endpoint, select __AWS Lambda ARN (Amazon Resource Name)__ as the Service Endpoint Type. Select North America/Europe depending on where you are. In the field that pops up, leave that blank for now. We will come back to that once the skill has been uploaded to Lambda. Also, under Account Linking, make sure that 'no' is checked.
-6. We will now be moving on from Amazon Developer and will be setting up the YouTube API. Follow [this guide](https://developers.google.com/youtube/v3/getting-started) to get an API key.
-7. Now it's time to set up Lambda. Log on to your AWS account and select "Lambda" from the main console menu. Make sure your region is set to N. Virginia (North America) or EU-Ireland (Europe). 
-8. Click on "Create a Lambda function" in the Lambda console menu. For the blueprint, select __alexa-skills-kit-color-expert__.
-9. Configure the function. Give it a name like "alexaYoutubeSkill" and fill in an appropriate description. Assign it to a role with at least S3 read permissions. Leave the rest the default skill for now.
-10. Click [here](https://s3-us-west-1.amazonaws.com/alexa-youtube-skill/lambda/alexa-youtube-skill.zip) to download __alexa-youtube-skill.zip__, which contains all the code for the Lambda server. 
+5. Add a custom slot type called VIDEOS. Under "Values", put:
+```
+prince
+the fray
+the rolling stones
+toad the wet sproket
+KC and the sunshine band
+john travolta and olivia newton john
+DJ jazzy jeff and the fresh prince
+lola
+hello dolly
+love me tender
+fools gold
+roberta flack killing me softly with his song
+stevie wonder superstition
+boston
+full circle
+dubstar
+underworld
+orbital
+let me be your fantasy
+pop will eat itself
+ultra nate
+4 hours Peaceful and Relaxing Instrumental Music
+```
+6. __Configuration__ page: under Endpoint, select __AWS Lambda ARN (Amazon Resource Name)__ as the Service Endpoint Type. Select North America/Europe depending on where you are. In the field that pops up, leave that blank for now. We will come back to that once the skill has been uploaded to Lambda. Also, under Account Linking, make sure that 'no' is checked.
+7. We will now be moving on from Amazon Developer and will be setting up the YouTube API. Follow [this guide](https://developers.google.com/youtube/v3/getting-started) to get an API key.
+8. Now it's time to set up Lambda. Log on to your AWS account and select "Lambda" from the main console menu. Make sure your region is set to N. Virginia (North America) or EU-Ireland (Europe). 
+9. Click on "Create a Lambda function" in the Lambda console menu. For the blueprint, select __alexa-skills-kit-color-expert__.
+10. Configure the function. Give it a name like "alexaYoutubeSkill" and fill in an appropriate description. Assign it to a role with at least S3 read permissions. Leave the rest the default skill for now.
+11. Click [here](https://s3-us-west-1.amazonaws.com/alexa-youtube-skill/lambda/alexa-youtube-skill.zip) to download __alexa-youtube-skill.zip__, which contains all the code for the Lambda server. 
       * The zip file is recompiled from this repository ever hour. If you want to verify the build date, open the zip file and look for _timestamp.txt_.
-11. Now, go back to the Lambda function you just saved. Under "Code entry type," select "Upload a ZIP file." Then, upload alexa-youtube-skill.zip under "Function Package." 
-12. You will now need to enter 2 environment variables. Enter these in:
+12. Now, go back to the Lambda function you just saved. Under "Code entry type," select "Upload a ZIP file." Then, upload alexa-youtube-skill.zip under "Function Package." 
+13. You will now need to enter 2 environment variables. Enter these in:
 
 | Key                  | Value                                                               |
 | -------------------- | ------------------------------------------------------------------- |
 | ALEXA_APPLICATION_ID | found under Skill Information under your skill in Amazon Developer  |
 | YOUTUBE_API_KEY      | the YouTube API key you found earlier                               |
   
-13. Additionally, under "Advanced Settings" in your Lambda server, go to the "Timeout" section. Change the timeout duration from 3 seconds to >= 1 minute.
-14. The last step is linking your Lambda function to your Alexa skill. Go back to Alexa under Amazon Developer and find your skill. In the __Configuration__ page, put the Lambda ARN name in the blank spot that you left earlier.
-15. Go to the __Test__ page and set Enabled to true. The skill will now work exclusively on your devices.
+14. Additionally, under "Advanced Settings" in your Lambda server, go to the "Timeout" section. Change the timeout duration from 3 seconds to >= 1 minute.
+15. The last step is linking your Lambda function to your Alexa skill. Go back to Alexa under Amazon Developer and find your skill. In the __Configuration__ page, put the Lambda ARN name in the blank spot that you left earlier.
+16. Go to the __Test__ page and set Enabled to true. The skill will now work exclusively on your devices.
 
 ## Technical Details
 
