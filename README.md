@@ -115,5 +115,5 @@ Request __(1)__ -> AWS Lambda __(2)__ -> Custom Heroku Server __(3)__ -> User __
 
 1. The user makes a request mentioning the skill. See the summary for an example.
 2. The skill, which is being run on an AWS Lambda server, receives the query.
-3. The skill passes that query to [a custom Heroku server that I built](https://github.com/dmhacker/dmhacker-youtube). The Heroku server pulls up the most relevant video on YouTube, downloads the audio into a temporary public folder and returns the link/metadata to the skill.
+3. The skill passes that query to [a custom Heroku server that I built](https://github.com/dmhacker/dmhacker-youtube). The Heroku server pulls up the most relevant video on YouTube, downloads the audio into a temporary public folder and returns the link/metadata to the skill. The download process is done asynchronously (the server returns immediately), so the skill blocks until the server notifies the skill that the download is complete.
 4. The skill will then send a PlayRequest to the user's Alexa with the link to the MP3 file.
