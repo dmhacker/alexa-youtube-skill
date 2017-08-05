@@ -66,8 +66,6 @@ function get_executable_promise(req, response, language) {
 
     console.log('Searching ... ' + query);
 
-    response.say(language === 'german' ? 'Suchen ...' : 'Searching ...');
-
     return new Promise((resolve, reject) => {
 
         search(query, searchOpts, function(err, results) {
