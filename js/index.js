@@ -1,15 +1,8 @@
 var alexa = require("alexa-app");
-var search = require('youtube-search');
 var fs = require('fs');
 var request = require('request');
 
 var app = new alexa.app("youtube");
-
-var searchOpts = {
-    maxResults: 1,
-    type: 'video',
-    key: process.env.YOUTUBE_API_KEY
-};
 
 var herokuAppUrl = process.env.HEROKU_APP_URL;
 if (!herokuAppUrl || herokuAppUrl === 0) {
@@ -73,43 +66,30 @@ function get_executable_promise(req, response, language) {
 
     return new Promise((resolve, reject) => {
 
-        search(query, searchOpts, function(err, results) {
-            if (err) {
-                reject(err.message);
-            } else if (results.length !== 1) {
+      request(herokuAppUrl + '/alexa-search/' + new Buffer(query).toString('base64'), function(err, res, body) {
+          if (err) {
+              reject(err.message);
+          } else {
+            var bodyJSON = JSON.parse(body);
+            if (bodyJSON.status === 'error' && bodyJSON.message === 'No results found') {
                 resolve({
-                    message: language === 'german' ? 'Ich konnte deine Bitte in diesem Moment nicht abschließen.' : 'I could not complete your request at this moment.',
+                    message: language === 'german' ? 'Keine Ergebnisse auf Youtube gefunden.' : query + ' did not return any results on YouTube.',
                     url: null,
                     metadata: null
                 });
-            } else {
-                var metadata = results[0];
-                if (metadata.id === undefined) {
-                    resolve({
-                        message: language === 'german' ? 'Keine Ergebnisse auf Youtube gefunden.' : query + ' did not return any results on YouTube.',
-                        url: null,
-                        metadata: null
-                    });
-                } else {
-                    console.log('Found ... ' + metadata.title);
-                    var id = metadata.id;
-                    var externalDownload = herokuAppUrl + '/alexa/' + id;
-                    request(externalDownload, function(err, res, body) {
-                        if (err) {
-                            reject(err.message);
-                        } else {
-                            lastSearch = herokuAppUrl + JSON.parse(body).link;
-                            console.log('Stored @ '+lastSearch);
-                            resolve({
-                                message: language === 'german' ? 'Ich spiele jetzt ' + metadata.title + '.' : 'I am now playing ' + metadata.title + '.',
-                                url: lastSearch,
-                                metadata: metadata
-                            });
-                        }
-                    });
-                }
             }
-        });
+            else {
+                lastSearch = herokuAppUrl + bodyJSON.link;
+                console.log('Stored @ '+lastSearch);
+                var metadata = bodyJSON.info;
+                resolve({
+                    message: language === 'german' ? 'Ich spiele jetzt ' + metadata.title + '.' : 'I am now playing ' + metadata.title + '.',
+                    url: lastSearch,
+                    metadata: metadata
+                });
+            }
+          }
+      });
     }).then(function (content) {
         var message = content.message;
         var streamUrl = content.url;
@@ -125,7 +105,7 @@ function get_executable_promise(req, response, language) {
             response.card({
                 'type': 'Simple',
                 'title': 'Search for "' + query + '"',
-                'content': 'Alexa found "' + metadata.title + '" at ' + metadata.link + '.'
+                'content': 'Alexa found "' + metadata.title + '" at ' + metadata.original + '.'
             });
         }
         response.send();
