@@ -103,7 +103,7 @@ ultra nate
 
 The way the skill searches, downloads, and fetches the audio is very complicated because it relies on several free utilities. The basic flow of information through the skill could be summarized as this:
 
-Request __(1)__ -> AWS Lambda __(2)__ -> Custom Heroku Server __(4)__ -> User __(5)__
+Request __(1)__ -> AWS Lambda __(2)__ -> Custom Heroku Server __(3)__ -> User __(4)__
 
 1. The user makes a request mentioning the skill. See the summary for an example.
 2. The skill, which is being run on an AWS Lambda server, receives the query.
