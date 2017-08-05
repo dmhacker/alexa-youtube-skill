@@ -15,6 +15,8 @@ var lastToken;
 var lastPlaybackStart;
 var lastPlaybackStop;
 
+var repeatEnabled = false;
+
 app.pre = function(req, response, type) {
     if (req.data.session !== undefined) {
         if (req.data.session.application.applicationId !== process.env.ALEXA_APPLICATION_ID) {
@@ -123,6 +125,20 @@ app.audioPlayer("PlaybackStarted", function(req, response) {
     console.log('Playback started.');
 });
 
+app.audioPlayer("PlaybackFinished", function(req, response) {
+    console.log('Playback finished.');
+    if (repeatEnabled && lastSearch) {
+      console.log('Repeat was enabled. Playing '+lastSearch+' again ...');
+      response.audioPlayerPlayStream('REPLACE_ALL', {
+          'url': lastSearch,
+          'streamFormat': 'AUDIO_MPEG',
+          'token': lastToken,
+          'offsetInMilliseconds': 0
+      });
+      lastPlaybackStart = new Date().getTime();
+    }
+});
+
 app.audioPlayer("PlaybackFailed", function(req, response) {
     console.log('Playback failed.');
     console.log(req.data.request);
@@ -149,13 +165,6 @@ app.intent("AMAZON.ResumeIntent", {}, function(req, response) {
     response.send();
 });
 
-app.intent("AMAZON.StopIntent", {}, function(req, response) {
-    lastSearch = undefined;
-    response.audioPlayerStop();
-    response.audioPlayerClearQueue();
-    response.send();
-});
-
 app.intent("AMAZON.RepeatIntent", {}, function(req, response) {
     if (lastSearch === undefined) {
         response.say(req.data.request.locale === 'de-DE' ? 'Sie haben vorher kein Video gespielt.' : 'You were not playing any video previously.');
@@ -166,8 +175,28 @@ app.intent("AMAZON.RepeatIntent", {}, function(req, response) {
             'token': lastToken,
             'offsetInMilliseconds': 0
         });
+        lastPlaybackStart = new Date().getTime();
     }
     response.send();
-})
+});
+
+app.intent("AMAZON.LoopOnIntent", {}, function(req, response) {
+    repeatEnabled = true;
+    response.say(req.data.request.locale === 'de-DE' ? 'Ich werde Ihre letzte Auswahl automatisch wiederholen, wenn sie endet.' : 'I will automatically repeat your last selection when it ends.');
+    response.send();
+});
+
+app.intent("AMAZON.LoopOffIntent", {}, function(req, response) {
+    repeatEnabled = false;
+    response.say(req.data.request.locale === 'de-DE' ? 'Ich werde deine letzte Auswahl nicht mehr wiederholen.' : 'I will no longer repeat your last selection.');
+    response.send();
+});
+
+app.intent("AMAZON.StopIntent", {}, function(req, response) {
+    lastSearch = undefined;
+    response.audioPlayerStop();
+    response.audioPlayerClearQueue();
+    response.send();
+});
 
 exports.handler = app.lambda();

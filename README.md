@@ -39,6 +39,12 @@ Alexa will then do a search, finding the most relevant video that matches the qu
     },
     {
       "intent": "AMAZON.RepeatIntent"
+    },
+    {
+      "intent": "AMAZON.LoopOnIntent"
+    },
+    {
+      "intent": "AMAZON.LoopOffIntent"
     }
   ]
 }
