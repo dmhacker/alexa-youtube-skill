@@ -1,6 +1,7 @@
 var alexa = require("alexa-app");
 var fs = require('fs');
 var request = require('request');
+var ssml = require('ssml-builder');
 
 var app = new alexa.app("youtube");
 
@@ -101,7 +102,9 @@ function get_executable_promise(req, response, language) {
     var message = content.message;
     var streamUrl = content.url;
     var metadata = content.metadata;
-    response.say(message);
+    var speech = new ssml();
+    speech.say(message);
+    response.say(speech.ssml(true));
     if (streamUrl) {
       response.audioPlayerPlayStream('REPLACE_ALL', {
         'url': streamUrl,
