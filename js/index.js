@@ -11,6 +11,8 @@ var searchOpts = {
     key: process.env.YOUTUBE_API_KEY
 };
 
+var herokuAppUrl = process.env.HEROKU_APP_URL;
+
 var lastSearch;
 
 app.pre = function(req, response, type) {
@@ -88,12 +90,12 @@ function get_executable_promise(req, response, language) {
                 } else {
                     console.log('Found ... ' + metadata.title);
                     var id = metadata.id;
-                    var externalDownload = 'https://dmhacker-youtube.herokuapp.com/alexa/' + id;
+                    var externalDownload = herokuAppUrl + '/alexa/' + id;
                     request(externalDownload, function(err, res, body) {
                         if (err) {
                             reject(err.message);
                         } else {
-                            lastSearch = JSON.parse(body).link;
+                            lastSearch = herokuAppUrl + '/' + JSON.parse(body).link;
                             console.log('Stored @ '+lastSearch);
                             resolve({
                                 message: language === 'german' ? 'Ich spiele jetzt ' + metadata.title + '.' : 'I am now playing ' + metadata.title + '.',
