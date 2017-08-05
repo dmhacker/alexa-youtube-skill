@@ -11,7 +11,7 @@ var searchOpts = {
     key: process.env.YOUTUBE_API_KEY
 };
 
-var herokuAppUrl = process.env.HEROKU_APP_URL;
+var herokuAppUrl = process.env.HEROKU_APP_URL | 'https://dmhacker-youtube.herokuapp.com';
 
 var lastSearch;
 
@@ -95,7 +95,7 @@ function get_executable_promise(req, response, language) {
                         if (err) {
                             reject(err.message);
                         } else {
-                            lastSearch = herokuAppUrl + '/' + JSON.parse(body).link;
+                            lastSearch = herokuAppUrl + JSON.parse(body).link;
                             console.log('Stored @ '+lastSearch);
                             resolve({
                                 message: language === 'german' ? 'Ich spiele jetzt ' + metadata.title + '.' : 'I am now playing ' + metadata.title + '.',
