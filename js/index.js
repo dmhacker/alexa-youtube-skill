@@ -136,6 +136,7 @@ app.audioPlayer("PlaybackFinished", function(req, response) {
           'offsetInMilliseconds': 0
       });
       lastPlaybackStart = new Date().getTime();
+      response.send();
     }
 });
 
@@ -181,12 +182,14 @@ app.intent("AMAZON.RepeatIntent", {}, function(req, response) {
 });
 
 app.intent("AMAZON.LoopOnIntent", {}, function(req, response) {
+    console.log('Repeat enabled.');
     repeatEnabled = true;
     response.say(req.data.request.locale === 'de-DE' ? 'Ich werde Ihre letzte Auswahl automatisch wiederholen, wenn sie endet.' : 'I will automatically repeat your last selection when it ends.');
     response.send();
 });
 
 app.intent("AMAZON.LoopOffIntent", {}, function(req, response) {
+    console.log('Repeat disabled.');
     repeatEnabled = false;
     response.say(req.data.request.locale === 'de-DE' ? 'Ich werde deine letzte Auswahl nicht mehr wiederholen.' : 'I will no longer repeat your last selection.');
     response.send();
