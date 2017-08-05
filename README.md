@@ -91,14 +91,14 @@ ultra nate
 10. Click [here](https://github.com/dmhacker/alexa-youtube-skill/raw/master/alexa-youtube-skill.zip) to download __alexa-youtube-skill.zip__, which contains all the code for the Lambda server. 
       * The zip file is recompiled from this repository ever hour. If you want to verify the build date, open the zip file and look for _timestamp.txt_.
 11. Now, go back to the Lambda function you just saved. Under "Code entry type," select "Upload a ZIP file." Then, upload alexa-youtube-skill.zip under "Function Package." 
-12. You will now need to enter 2 environment variables. Enter these in:
+12. You will now need to fill out the required environment variables:
 
 | Key                  | Value                                                               |
 | -------------------- | ------------------------------------------------------------------- |
 | ALEXA_APPLICATION_ID | found under Skill Information under your skill in Amazon Developer  |
 | HEROKU_APP_URL       | __OPTIONAL__ the URL for the Heroku intermediary server. Defaults to https://dmhacker-youtube.herokuapp.com if this variable is not included. Otherwise, you can choose to [setup and use your own server](https://github.com/dmhacker/dmhacker-youtube). |
   
-13. Additionally, under "Advanced Settings" in your Lambda server, go to the "Timeout" section. Change the timeout duration from 3 seconds to >= 1 minute.
+13. Under "Configuration" -> "Advanced Settings" in your Lambda server, go to the "Timeout" section. Change the timeout duration from 3 seconds to >= 1 minute.
 14. The last step is linking your Lambda function to your Alexa skill. Go back to Alexa under Amazon Developer and find your skill. In the __Configuration__ page, put the Lambda ARN name in the blank spot that you left earlier.
 15. Go to the __Test__ page and set Enabled to true. The skill will now work exclusively on your devices.
 
