@@ -11,7 +11,10 @@ var searchOpts = {
     key: process.env.YOUTUBE_API_KEY
 };
 
-var herokuAppUrl = process.env.HEROKU_APP_URL | 'https://dmhacker-youtube.herokuapp.com';
+var herokuAppUrl = process.env.HEROKU_APP_URL;
+if (!herokuAppUrl || herokuAppUrl === 0) {
+  herokuAppUrl = 'https://dmhacker-youtube.herokuapp.com';
+}
 
 var lastSearch;
 
