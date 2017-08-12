@@ -71,7 +71,13 @@ function get_executable_promise(req, response, language) {
 
   return new Promise((resolve, reject) => {
 
-    request(herokuAppUrl + '/alexa-search/' + new Buffer(query).toString('base64'), function(err, res, body) {
+    var searchUrl = herokuAppUrl + '/alexa-search/' + new Buffer(query).toString('base64');
+
+    if (language === 'de-DE') {
+      searchUrl += '?language=de';
+    }
+    
+    request(searchUrl, function(err, res, body) {
       if (err) {
         reject(err.message);
       } else {
