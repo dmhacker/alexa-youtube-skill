@@ -59,11 +59,16 @@ GetVideoIntent put on {VideoQuery}
 ```
 4b. Note for German users, under Intent Schema, replace "GetVideoIntent" with "GetVideoGermanIntent". Substitute this in replace of the English commands:
 ```
-GetVideoGermanIntent suchen nach {VideoQuery}
+GetVideoGermanIntent suche nach {VideoQuery}
+GetVideoGermanIntent suche {VideoQuery}
 GetVideoGermanIntent finde {VideoQuery}
-GetVideoGermanIntent spielen {VideoQuery}
-GetVideoGermanIntent anfangen zu spielen {VideoQuery}
-GetVideoGermanIntent anziehen {VideoQuery}
+GetVideoGermanIntent spiele {VideoQuery}
+GetVideoGermanIntent spiele {VideoQuery} ab
+GetVideoGermanIntent gib {VideoQuery} wieder
+GetVideoGermanIntent fange {VideoQuery} an zu spielen
+GetVideoGermanIntent fange an {VideoQuery} zu spielen
+GetVideoGermanIntent zeige {VideoQuery}
+GetVideoGermanIntent starte die Wiedergabe von {VideoQuery}
 ```
 5. Add a custom slot type called VIDEOS. Under "Values", put:
 ```
