@@ -63,7 +63,7 @@ GetVideoGermanIntent suchen nach {VideoQuery}
 GetVideoGermanIntent finde {VideoQuery}
 GetVideoGermanIntent spielen {VideoQuery}
 GetVideoGermanIntent anfangen zu spielen {VideoQuery}
-GetVideoGermanIntent anziehen {VideoQuery}
+GetVideoGermanIntent abspielen {VideoQuery}
 ```
 5. Add a custom slot type called VIDEOS. Under "Values", put:
 ```
