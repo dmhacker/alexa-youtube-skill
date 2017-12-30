@@ -3,6 +3,8 @@ var fs = require('fs');
 var request = require('request');
 var ssml = require('ssml-builder');
 
+var response_strings = require('./responses');
+
 var app = new alexa.app("youtube");
 
 var herokuAppUrl = process.env.HEROKU_APP_URL;
@@ -17,6 +19,23 @@ var lastPlaybackStart;
 var lastPlaybackStop;
 
 var repeatEnabled = false;
+
+String.prototype.formatUnicorn = String.prototype.formatUnicorn || function () {
+  "use strict";
+  var str = this.toString();
+  if (arguments.length) {
+    var t = typeof arguments[0];
+    var key;
+    var args = ("string" === t || "number" === t) ?
+      Array.prototype.slice.call(arguments)
+      : arguments[0];
+
+    for (key in args) {
+      str = str.replace(new RegExp("\\{" + key + "\\}", "gi"), args[key]);
+    }
+  }
+  return str;
+};
 
 app.pre = function(req, response, type) {
   if (req.data.session !== undefined) {
@@ -76,7 +95,7 @@ function get_executable_promise(req, response, language) {
     if (language === 'de-DE') {
       searchUrl += '?language=de';
     }
-    
+
     request(searchUrl, function(err, res, body) {
       if (err) {
         reject(err.message);
@@ -84,7 +103,7 @@ function get_executable_promise(req, response, language) {
         var bodyJSON = JSON.parse(body);
         if (bodyJSON.status === 'error' && bodyJSON.message === 'No results found') {
           resolve({
-            message: language === 'de-DE' ? 'Keine Ergebnisse auf Youtube gefunden.' : query + ' did not return any results on YouTube.',
+            message: response_strings[language]['NO_RESULTS_FOUND'].formatUnicorn(query),
             url: null,
             metadata: null
           });
@@ -96,7 +115,7 @@ function get_executable_promise(req, response, language) {
           recursive_check(lastToken, 1000, function() {
             console.log('Stored @ ' + lastSearch);
             resolve({
-              message: language === 'de-DE' ? 'Ich spiele jetzt ' + metadata.title + '.' : 'I am now playing ' + metadata.title + '.',
+              message: response_strings[language]['NOW_PLAYING'].formatUnicorn(metadata.title),
               url: lastSearch,
               metadata: metadata
             });
@@ -179,7 +198,7 @@ app.intent("AMAZON.PauseIntent", {}, function(req, response) {
 
 app.intent("AMAZON.ResumeIntent", {}, function(req, response) {
   if (lastSearch === undefined) {
-    response.say(req.data.request.locale === 'de-DE' ? 'Sie spielen derzeit nichts.' : 'You are not playing anything currently.');
+    response.say(response_strings[req.data.request.locale]['NOTHING_TO_RESUME']);
   } else {
     response.audioPlayerPlayStream('REPLACE_ALL', {
       'url': lastSearch,
@@ -193,7 +212,7 @@ app.intent("AMAZON.ResumeIntent", {}, function(req, response) {
 
 app.intent("AMAZON.RepeatIntent", {}, function(req, response) {
   if (lastSearch === undefined) {
-    response.say(req.data.request.locale === 'de-DE' ? 'Sie haben vorher kein Video gespielt.' : 'You were not playing any video previously.');
+    response.say(response_strings[req.data.request.locale]['NOTHING_TO_REPEAT']);
   } else {
     response.audioPlayerPlayStream('REPLACE_ALL', {
       'url': lastSearch,
@@ -209,14 +228,14 @@ app.intent("AMAZON.RepeatIntent", {}, function(req, response) {
 app.intent("AMAZON.LoopOnIntent", {}, function(req, response) {
   console.log('Repeat enabled.');
   repeatEnabled = true;
-  response.say(req.data.request.locale === 'de-DE' ? 'Ich werde Ihre letzte Auswahl automatisch wiederholen, wenn sie endet.' : 'I will automatically repeat your last selection when it ends.');
+  response.say(response_strings[req.data.request.locale]['LOOP_ON_TRIGGERED']);
   response.send();
 });
 
 app.intent("AMAZON.LoopOffIntent", {}, function(req, response) {
   console.log('Repeat disabled.');
   repeatEnabled = false;
-  response.say(req.data.request.locale === 'de-DE' ? 'Ich werde deine letzte Auswahl nicht mehr wiederholen.' : 'I will no longer repeat your last selection.');
+  response.say(response_strings[req.data.request.locale]['LOOP_OFF_TRIGGERED']);
   response.send();
 });
 
