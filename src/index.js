@@ -393,4 +393,9 @@ app.intent("AMAZON.LoopOffIntent", {}, function(req, res) {
   ).send();
 });
 
+// User asked Alexa for help
+app.intent("AMAZON.HelpIntent", {}, function(req, res) {
+  res.say(response_messages[req.data.request.locale]["HELP_TRIGGERED"]).send();
+});
+
 exports.handler = app.lambda();
