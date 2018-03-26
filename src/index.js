@@ -292,6 +292,40 @@ app.audioPlayer("PlaybackNearlyFinished", function(req, res) {
   }
 });
 
+// User told Alexa to start over the audio
+app.intent("AMAZON.StartOverIntent", {}, function(req, res) {
+  if (has_video()) {
+    // Replay the video from the beginning
+    restart_video(res, 0);
+  }
+  else {
+    res.say(response_messages[req.data.request.locale]["NOTHING_TO_REPEAT"]);
+  }
+  res.send();
+});
+
+var stop_intent = function(req, res) {
+  if (has_video()) {
+    // Stop current stream from playing
+    if (is_streaming_video()) {
+      last_token = null;
+      res.audioPlayerStop();
+    }
+
+    // Clear the entire stream queue
+    last_search = null;
+    res.audioPlayerClearQueue();
+  }
+  else {
+    res.say(response_messages[req.data.request.locale]["NOTHING_TO_REPEAT"]);
+  }
+  res.send();
+};
+
+// User told Alexa to stop playing audio
+app.intent("AMAZON.StopIntent", {}, stop_intent);
+app.intent("AMAZON.CancelIntent", {}, stop_intent);
+
 // User told Alexa to resume the audio
 app.intent("AMAZON.ResumeIntent", {}, function(req, res) {
   if (is_streaming_video()) {
@@ -313,33 +347,6 @@ app.intent("AMAZON.PauseIntent", {}, function(req, res) {
   }
   else {
     res.say(response_messages[req.data.request.locale]["NOTHING_TO_RESUME"]);
-  }
-  res.send();
-});
-
-// User told Alexa to start over the audio
-app.intent("AMAZON.StartOverIntent", {}, function(req, res) {
-  if (has_video()) {
-    // Replay the video from the beginning
-    restart_video(res, 0);
-  }
-  else {
-    res.say(response_messages[req.data.request.locale]["NOTHING_TO_REPEAT"]);
-  }
-  res.send();
-});
-
-// User told Alexa to stop playing audio
-app.intent("AMAZON.StopIntent", {}, function(req, res) {
-  if (has_video()) {
-    // Stop the audio player and clear the queue, search, and token
-    last_search = null;
-    last_token = null;
-    res.audioPlayerStop();
-    res.audioPlayerClearQueue("REPLACE_ALL");
-  }
-  else {
-    res.say(response_messages[req.data.request.locale]["NOTHING_TO_REPEAT"]);
   }
   res.send();
 });
