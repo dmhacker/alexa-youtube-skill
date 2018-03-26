@@ -288,80 +288,77 @@ app.audioPlayer("PlaybackNearlyFinished", function(req, res) {
   }
 });
 
-// User told Alexa to start over the audio
-app.intent("AMAZON.StartOverIntent", {}, function(req, res) {
-  if (last_search.url == undefined) {
-    // No video was being played
-    res.say(response_messages[req.data.request.locale]['NOTHING_TO_REPEAT']);
-  } else {
-    // Replay the last video from the beginning
-    restart_last_video(res, 0);
-  }
-
-  // Send response to Alexa device
-  res.send();
-});
-
-// User told Alexa to stop playing audio
-app.intent("AMAZON.StopIntent", {}, function(req, res) {
-  // Clear search and token
-  last_search.url = undefined;
-  last_search.id = undefined;
-  last_token = undefined;
-
-  // Stop the audio player and clear the queue
-  res.audioPlayerStop();
-  res.audioPlayerClearQueue("REPLACE_ALL");
-
-  // Send response to Alexa device
-  res.send();
-});
-
 // User told Alexa to resume the audio
 app.intent("AMAZON.ResumeIntent", {}, function(req, res) {
   if (last_token == undefined) {
-    // No video was being played
     res.say(response_messages[req.data.request.locale]['NOTHING_TO_RESUME']);
-  } else {
-    // Replay the last video from saved offset
+  }
+  else {
+    // Replay the video starting at the desired offset
     restart_last_video(res, last_playback.stop - last_playback.start);
   }
-
-  // Send response to Alexa device
   res.send();
 });
 
 // User told Alexa to pause the audio
 app.intent("AMAZON.PauseIntent", {}, function(req, res) {
-  // Record playback stop time
-  last_playback.stop = new Date().getTime();
+  if (last_token == undefined) {
+    res.say(response_messages[req.data.request.locale]['NOTHING_TO_RESUME']);
+  }
+  else {
+    // Stop the video and record the timestamp
+    last_playback.stop = new Date().getTime();
+    res.audioPlayerStop();
+  }
+  res.send();
+});
 
-  // Stop the audio player
-  res.audioPlayerStop();
+// User told Alexa to start over the audio
+app.intent("AMAZON.StartOverIntent", {}, function(req, res) {
+  if (last_search.url == undefined) {
+    res.say(response_messages[req.data.request.locale]['NOTHING_TO_REPEAT']);
+  }
+  else {
+    // Replay the video from the beginning
+    restart_last_video(res, 0);
+  }
+  res.send();
+});
 
-  // Send response to Alexa device
+// User told Alexa to stop playing audio
+app.intent("AMAZON.StopIntent", {}, function(req, res) {
+  if (last_search.url == undefined) {
+    res.say(response_messages[req.data.request.locale]['NOTHING_TO_REPEAT']);
+  }
+  else {
+    // Clear search and token
+    last_search.url = undefined;
+    last_search.id = undefined;
+    last_token = undefined;
+
+    // Stop the audio player and clear the queue
+    res.audioPlayerStop();
+    res.audioPlayerClearQueue("REPLACE_ALL");
+  }
   res.send();
 });
 
 // User told Alexa to repeat audio infinitely
 app.intent("AMAZON.RepeatIntent", {}, function(req, res) {
-  console.log('Repeat once enabled.');
-
-  // Only repeat if we are currently playing something
-  repeat_once = last_token != undefined;
-
   // User searched for a video but playback ended
   if (last_token == undefined && last_search.url)
     restart_last_video(res, 0);
+  else
+    repeat_once = true;
 
-  // Say and send response to Alexa device
-  res.say(response_messages[req.data.request.locale]['REPEAT_TRIGGERED']).send();
+  res.say(
+    response_messages[req.data.request.locale]['REPEAT_TRIGGERED']
+      .formatUnicorn(last_search.url != undefined ? 'current' : 'next')
+  ).send();
 });
 
 // User told Alexa to repeat audio infinitely
 app.intent("AMAZON.LoopOnIntent", {}, function(req, res) {
-  console.log('Repeat loop enabled.');
-
   // Enable repeating infinitely
   repeat_infinitely = true;
 
@@ -369,19 +366,19 @@ app.intent("AMAZON.LoopOnIntent", {}, function(req, res) {
   if (last_token == undefined && last_search.url)
     restart_last_video(res, 0);
 
-  /// Say and send response to Alexa device
-  res.say(response_messages[req.data.request.locale]['LOOP_ON_TRIGGERED']).send();
+  res.say(
+    response_messages[req.data.request.locale]['LOOP_ON_TRIGGERED']
+      .formatUnicorn(last_search.url != undefined ? 'current' : 'next')
+  ).send();
 });
 
 // User told Alexa to stop repeating audio infinitely
 app.intent("AMAZON.LoopOffIntent", {}, function(req, res) {
-  console.log('Repeat loop disabled.');
-
-  // Disable repeating infinitely
   repeat_infinitely = false;
-
-  // Say and send response to Alexa device
-  res.say(response_messages[req.data.request.locale]['LOOP_OFF_TRIGGERED']).send();
+  res.say(
+    response_messages[req.data.request.locale]['LOOP_OFF_TRIGGERED']
+      .formatUnicorn(last_search.url != undefined ? 'current' : 'next')
+  ).send();
 });
 
 exports.handler = app.lambda();
