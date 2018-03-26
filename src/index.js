@@ -109,16 +109,16 @@ function get_video(req, res, lang) {
             metadata: null
           });
         } else {
-          console.log('Processing ...');
-
           // Set last search & token to equal the current video's parameters
           var metadata = body_json.info;
           last_search.url = heroku + body_json.link;
           last_search.id = metadata.id;
           last_token = uuidv4();
 
+          console.log('YouTube URL: ' + metadata.original);
+
           wait_for_video(metadata.id, function() {
-            console.log('Audio URL:' + last_search.url);
+            console.log('Audio URL: ' + last_search.url);
 
             // Return audio URL from request to promise
             resolve({
