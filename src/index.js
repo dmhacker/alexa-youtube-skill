@@ -261,7 +261,7 @@ app.audioPlayer("PlaybackFailed", function(req, res) {
 // Use playback finished events to repeat audio
 app.audioPlayer("PlaybackNearlyFinished", function(req, res) {
   // Repeat is enabled, so begin next playback
-  if (last_search && (repeat_infinitely || repeat_once)) {
+  if (has_video() && (repeat_infinitely || repeat_once)) {
     // Generate new token for the stream
     var new_token = uuidv4();
 
@@ -309,7 +309,6 @@ app.intent("AMAZON.PauseIntent", {}, function(req, res) {
   if (is_streaming_video()) {
     // Stop the video and record the timestamp
     last_playback.stop = new Date().getTime();
-    last_token = null;
     res.audioPlayerStop();
   }
   else {
