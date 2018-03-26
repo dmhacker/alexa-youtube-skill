@@ -78,7 +78,7 @@ function get_video(req, res, lang) {
           last_token = metadata.id;
           last_search = heroku + body_json.link;
 
-          check_video_download(last_token, 3000, function() {
+          wait_for_video(last_token, function() {
             console.log('Audio URL:' + last_search);
 
             // Return audio URL from request to promise
@@ -128,7 +128,8 @@ function get_video(req, res, lang) {
   });
 }
 
-function check_video_download(id, delay, callback) {
+// Blocks until the video audio has been loaded
+function wait_for_video(id, callback) {
   setTimeout(function() {
     request(heroku + '/alexa-check/' + id, function(err, res, body) {
       if (!err) {
@@ -137,11 +138,11 @@ function check_video_download(id, delay, callback) {
           callback();
         }
         else {
-          check_video_download(id, delay, callback);
+          wait_for_video(id, callback);
         }
       }
     });
-  }, delay);
+  }, 2000);
 }
 
 // Filter out bad requests (the client's ID is not the same as the server's)
