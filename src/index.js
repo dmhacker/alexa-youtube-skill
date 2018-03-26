@@ -30,15 +30,10 @@ var app = new alexa.app("youtube");
 // Set Heroku URL
 var heroku = process.env.HEROKU_APP_URL || 'https://dmhacker-youtube.herokuapp.com';
 
-// The URL that was last searched & its corresponding stream token
-var last_search;
-var last_token;
-
-// Playback information
-var last_playback = {
-  start: undefined,
-  stop: undefined
-};
+// Variables relating to the last video searched
+var last_search = null;
+var last_token = null;
+var last_playback = {};
 
 // Current song is repeating
 var repeat_infinitely = false;
@@ -57,12 +52,32 @@ function uuidv4() {
 }
 
 /**
+ * Returns whether a user is streaming video or not.
+ * By default, if this is true, then the user also has_video() as well.
+ *
+ * @return {Boolean} The state of the user's audio stream
+ */
+function is_streaming_video() {
+  return last_token != null;
+}
+
+/**
+ * Returns whether a user has downloaded a video.
+ * Doesn't take into account if the user is currently playing it.
+ *
+ * @return {Boolean} The state of the user's audio reference
+ */
+function has_video() {
+  return last_search != null;
+}
+
+/**
  * Restarts the video by injecting the last search URL as a new stream.
  *
  * @param  {Object} res    A response that will be sent to the Alexa device
  * @param  {Number} offset How many milliseconds from the video start to begin at
  */
-function restart_last_video(res, offset) {
+function restart_video(res, offset) {
     // Generate new token
     last_token = uuidv4();
 
@@ -151,7 +166,7 @@ function get_video(req, res, lang) {
       });
 
       // Start playing the video!
-      restart_last_video(res, 0);
+      restart_video(res, 0);
     }
 
     // Send response to Alexa device
@@ -248,7 +263,7 @@ app.audioPlayer("PlaybackFailed", function(req, res) {
 
 // Use playback finished events to repeat audio
 app.audioPlayer("PlaybackNearlyFinished", function(req, res) {
-  console.log('Playback nearbly finished.');
+  console.log('Playback nearly finished.');
 
   // Repeat is enabled, so begin next playback
   if (last_search && (repeat_infinitely || repeat_once)) {
@@ -279,60 +294,60 @@ app.audioPlayer("PlaybackNearlyFinished", function(req, res) {
     res.send();
   }
   else {
-    // Token is set to undefined because playback is done
-    last_token = undefined;
+    // Token is set to null because playback is done
+    last_token = null;
   }
 });
 
 // User told Alexa to resume the audio
 app.intent("AMAZON.ResumeIntent", {}, function(req, res) {
-  if (last_token == undefined) {
-    res.say(response_messages[req.data.request.locale]['NOTHING_TO_RESUME']);
+  if (is_streaming_video()) {
+    // Replay the video starting at the desired offset
+    restart_video(res, last_playback.stop - last_playback.start);
   }
   else {
-    // Replay the video starting at the desired offset
-    restart_last_video(res, last_playback.stop - last_playback.start);
+    res.say(response_messages[req.data.request.locale]['NOTHING_TO_RESUME']);
   }
   res.send();
 });
 
 // User told Alexa to pause the audio
 app.intent("AMAZON.PauseIntent", {}, function(req, res) {
-  if (last_token == undefined) {
-    res.say(response_messages[req.data.request.locale]['NOTHING_TO_RESUME']);
-  }
-  else {
+  if (is_streaming_video()) {
     // Stop the video and record the timestamp
     last_playback.stop = new Date().getTime();
-    last_token = undefined;
+    last_token = null;
     res.audioPlayerStop();
+  }
+  else {
+    res.say(response_messages[req.data.request.locale]['NOTHING_TO_RESUME']);
   }
   res.send();
 });
 
 // User told Alexa to start over the audio
 app.intent("AMAZON.StartOverIntent", {}, function(req, res) {
-  if (last_search == undefined) {
-    res.say(response_messages[req.data.request.locale]['NOTHING_TO_REPEAT']);
+  if (has_video()) {
+    // Replay the video from the beginning
+    restart_video(res, 0);
   }
   else {
-    // Replay the video from the beginning
-    restart_last_video(res, 0);
+    res.say(response_messages[req.data.request.locale]['NOTHING_TO_REPEAT']);
   }
   res.send();
 });
 
 // User told Alexa to stop playing audio
 app.intent("AMAZON.StopIntent", {}, function(req, res) {
-  if (last_search == undefined) {
-    res.say(response_messages[req.data.request.locale]['NOTHING_TO_REPEAT']);
-  }
-  else {
+  if (has_video()) {
     // Stop the audio player and clear the queue, search, and token
-    last_search = undefined;
-    last_token = undefined;
+    last_search = null;
+    last_token = null;
     res.audioPlayerStop();
     res.audioPlayerClearQueue("REPLACE_ALL");
+  }
+  else {
+    res.say(response_messages[req.data.request.locale]['NOTHING_TO_REPEAT']);
   }
   res.send();
 });
@@ -340,14 +355,14 @@ app.intent("AMAZON.StopIntent", {}, function(req, res) {
 // User told Alexa to repeat audio infinitely
 app.intent("AMAZON.RepeatIntent", {}, function(req, res) {
   // User searched for a video but playback ended
-  if (last_token == undefined && last_search)
-    restart_last_video(res, 0);
+  if (has_video() && !is_streaming_video())
+    restart_video(res, 0);
   else
     repeat_once = true;
 
   res.say(
     response_messages[req.data.request.locale]['REPEAT_TRIGGERED']
-      .formatUnicorn(last_search == undefined ? 'next' : 'current')
+      .formatUnicorn(has_video() ? 'current' : 'next')
   ).send();
 });
 
@@ -357,12 +372,12 @@ app.intent("AMAZON.LoopOnIntent", {}, function(req, res) {
   repeat_infinitely = true;
 
   // User searched for a video but playback ended
-  if (last_token == undefined && last_search)
-    restart_last_video(res, 0);
+  if (has_video() && !is_streaming_video())
+    restart_video(res, 0);
 
   res.say(
     response_messages[req.data.request.locale]['LOOP_ON_TRIGGERED']
-      .formatUnicorn(last_search == undefined ? 'next' : 'current')
+      .formatUnicorn(has_video() ? 'current' : 'next')
   ).send();
 });
 
@@ -372,7 +387,7 @@ app.intent("AMAZON.LoopOffIntent", {}, function(req, res) {
 
   res.say(
     response_messages[req.data.request.locale]['LOOP_OFF_TRIGGERED']
-      .formatUnicorn(last_search == undefined ? 'next' : 'current')
+      .formatUnicorn(has_video() ? 'current' : 'next')
   ).send();
 });
 
