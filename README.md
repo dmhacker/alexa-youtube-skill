@@ -10,6 +10,6 @@ Alexa will then do a search, finding the most relevant video that matches the qu
 
 __Instructions:__ The instructions have been moved to this repository's [wiki page](https://github.com/dmhacker/alexa-youtube-skill/wiki).
 
-__Disclaimer:__ This skill is not officially supported by YouTube in any way and, as such, will never be published on Amazon. It is more intended as a proof-of-concept, but instructions on setting it up are provided.
+__Disclaimer:__ This skill is not officially supported by YouTube and will never be published on Amazon. It was originally intended as proof-of-concept, but instructions on setting it up are provided (see above).
 
 
