@@ -1,5 +1,5 @@
-# NodeJS-specific files & folders
-js/node_modules
+# NodeJS files & folders
+app/node_modules
 
 # Logs
 logs
