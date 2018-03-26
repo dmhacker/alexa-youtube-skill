@@ -5,7 +5,8 @@ module.exports = {
     'NOTHING_TO_RESUME': 'You are not playing anything currently.',
     'NOTHING_TO_REPEAT': 'You were not playing any video previously.',
     'LOOP_ON_TRIGGERED': 'I will automatically repeat your last selection when it ends.',
-    'LOOP_OFF_TRIGGERED': 'I will no longer repeat your last selection.'
+    'LOOP_OFF_TRIGGERED': 'I will no longer repeat your last selection.',
+    'REPEAT_TRIGGERED': 'I will repeat your last selection once.'
   },
   'de-DE': {
     'NO_RESULTS_FOUND': 'Keine Ergebnisse auf Youtube gefunden.',
@@ -13,6 +14,7 @@ module.exports = {
     'NOTHING_TO_RESUME': 'Sie spielen derzeit nichts.',
     'NOTHING_TO_REPEAT': 'Sie haben vorher kein Video gespielt.',
     'LOOP_ON_TRIGGERED': 'Ich werde Ihre letzte Auswahl automatisch wiederholen, wenn sie endet.',
-    'LOOP_OFF_TRIGGERED': 'Ich werde deine letzte Auswahl nicht mehr wiederholen.'
+    'LOOP_OFF_TRIGGERED': 'Ich werde deine letzte Auswahl nicht mehr wiederholen.',
+    'REPEAT_TRIGGERED': 'Ich werde deine letzte Auswahl einmal wiederholen.'
   }
 }

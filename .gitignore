@@ -1,5 +1,5 @@
 # NodeJS files & folders
-app/node_modules
+src/node_modules
 
 # Logs
 logs
