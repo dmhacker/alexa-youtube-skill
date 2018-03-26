@@ -30,11 +30,8 @@ var app = new alexa.app("youtube");
 // Set Heroku URL
 var heroku = process.env.HEROKU_APP_URL || 'https://dmhacker-youtube.herokuapp.com';
 
-// The URL and video ID that was last searched & their corresponding stream token
-var last_search = {
-  url: undefined,
-  id: undefined
-}
+// The URL that was last searched & its corresponding stream token
+var last_search;
 var last_token;
 
 // Playback information
@@ -71,7 +68,7 @@ function restart_last_video(res, offset) {
 
     // Replay the last searched audio back into Alexa
     res.audioPlayerPlayStream('REPLACE_ALL', {
-      url: last_search.url,
+      url: last_search,
       streamFormat: 'AUDIO_MPEG',
       token: last_token,
       offsetInMilliseconds: offset
@@ -119,19 +116,18 @@ function get_video(req, res, lang) {
         } else {
           // Set last search & token to equal the current video's parameters
           var metadata = body_json.info;
-          last_search.url = heroku + body_json.link;
-          last_search.id = metadata.id;
+          last_search = heroku + body_json.link;
           last_token = uuidv4();
 
           console.log('YouTube URL: ' + metadata.original);
 
           wait_for_video(metadata.id, function() {
-            console.log('Audio URL: ' + last_search.url);
+            console.log('Audio URL: ' + last_search);
 
             // Return audio URL from request to promise
             resolve({
               message: response_messages[lang]['NOW_PLAYING'].formatUnicorn(metadata.title),
-              url: last_search.url,
+              url: last_search,
               metadata: metadata
             });
           });
@@ -255,15 +251,15 @@ app.audioPlayer("PlaybackNearlyFinished", function(req, res) {
   console.log('Playback nearbly finished.');
 
   // Repeat is enabled, so begin next playback
-  if (last_search.url && (repeat_infinitely || repeat_once)) {
-    console.log('Repeat was enabled. Playing ' + last_search.url + ' again ...');
+  if (last_search && (repeat_infinitely || repeat_once)) {
+    console.log('Repeat was enabled. Playing ' + last_search + ' again ...');
 
     // Generate new token for the stream
     var new_token = uuidv4();
 
     // Inject the audio that was just playing back into Alexa
     res.audioPlayerPlayStream('ENQUEUE', {
-      url: last_search.url,
+      url: last_search,
       streamFormat: 'AUDIO_MPEG',
       token: new_token,
       expectedPreviousToken: last_token,
@@ -308,6 +304,7 @@ app.intent("AMAZON.PauseIntent", {}, function(req, res) {
   else {
     // Stop the video and record the timestamp
     last_playback.stop = new Date().getTime();
+    last_token = undefined;
     res.audioPlayerStop();
   }
   res.send();
@@ -315,7 +312,7 @@ app.intent("AMAZON.PauseIntent", {}, function(req, res) {
 
 // User told Alexa to start over the audio
 app.intent("AMAZON.StartOverIntent", {}, function(req, res) {
-  if (last_search.url == undefined) {
+  if (last_search == undefined) {
     res.say(response_messages[req.data.request.locale]['NOTHING_TO_REPEAT']);
   }
   else {
@@ -327,16 +324,13 @@ app.intent("AMAZON.StartOverIntent", {}, function(req, res) {
 
 // User told Alexa to stop playing audio
 app.intent("AMAZON.StopIntent", {}, function(req, res) {
-  if (last_search.url == undefined) {
+  if (last_search == undefined) {
     res.say(response_messages[req.data.request.locale]['NOTHING_TO_REPEAT']);
   }
   else {
-    // Clear search and token
-    last_search.url = undefined;
-    last_search.id = undefined;
+    // Stop the audio player and clear the queue, search, and token
+    last_search = undefined;
     last_token = undefined;
-
-    // Stop the audio player and clear the queue
     res.audioPlayerStop();
     res.audioPlayerClearQueue("REPLACE_ALL");
   }
@@ -346,14 +340,14 @@ app.intent("AMAZON.StopIntent", {}, function(req, res) {
 // User told Alexa to repeat audio infinitely
 app.intent("AMAZON.RepeatIntent", {}, function(req, res) {
   // User searched for a video but playback ended
-  if (last_token == undefined && last_search.url)
+  if (last_token == undefined && last_search)
     restart_last_video(res, 0);
   else
     repeat_once = true;
 
   res.say(
     response_messages[req.data.request.locale]['REPEAT_TRIGGERED']
-      .formatUnicorn(last_search.url != undefined ? 'current' : 'next')
+      .formatUnicorn(last_search == undefined ? 'next' : 'current')
   ).send();
 });
 
@@ -363,21 +357,22 @@ app.intent("AMAZON.LoopOnIntent", {}, function(req, res) {
   repeat_infinitely = true;
 
   // User searched for a video but playback ended
-  if (last_token == undefined && last_search.url)
+  if (last_token == undefined && last_search)
     restart_last_video(res, 0);
 
   res.say(
     response_messages[req.data.request.locale]['LOOP_ON_TRIGGERED']
-      .formatUnicorn(last_search.url != undefined ? 'current' : 'next')
+      .formatUnicorn(last_search == undefined ? 'next' : 'current')
   ).send();
 });
 
 // User told Alexa to stop repeating audio infinitely
 app.intent("AMAZON.LoopOffIntent", {}, function(req, res) {
   repeat_infinitely = false;
+
   res.say(
     response_messages[req.data.request.locale]['LOOP_OFF_TRIGGERED']
-      .formatUnicorn(last_search.url != undefined ? 'current' : 'next')
+      .formatUnicorn(last_search == undefined ? 'next' : 'current')
   ).send();
 });
 
