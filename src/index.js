@@ -1,3 +1,5 @@
+"use strict";
+
 // Enables Python-esque formatting
 // (e.g. "Hello {0}!".formatUnicorn("world") => "Hello world!")
 String.prototype.formatUnicorn = String.prototype.formatUnicorn || function () {
@@ -19,16 +21,15 @@ String.prototype.formatUnicorn = String.prototype.formatUnicorn || function () {
 
 // Required packages
 var alexa = require("alexa-app");
-var fs = require('fs');
-var request = require('request');
-var ssml = require('ssml-builder');
-var response_messages = require('./responses');
+var request = require("request");
+var ssml = require("ssml-builder");
+var response_messages = require("./responses");
 
 // Create Alexa skill application
 var app = new alexa.app("youtube");
 
 // Set Heroku URL
-var heroku = process.env.HEROKU_APP_URL || 'https://dmhacker-youtube.herokuapp.com';
+var heroku = process.env.HEROKU_APP_URL || "https://dmhacker-youtube.herokuapp.com";
 
 // Variables relating to the last video searched
 var last_search = null;
@@ -45,7 +46,7 @@ var repeat_once = false;
  * @return {String} A random globally unique UUID
  */
 function uuidv4() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
     var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
   });
@@ -82,9 +83,9 @@ function restart_video(res, offset) {
     last_token = uuidv4();
 
     // Replay the last searched audio back into Alexa
-    res.audioPlayerPlayStream('REPLACE_ALL', {
+    res.audioPlayerPlayStream("REPLACE_ALL", {
       url: last_search,
-      streamFormat: 'AUDIO_MPEG',
+      streamFormat: "AUDIO_MPEG",
       token: last_token,
       offsetInMilliseconds: offset
     });
@@ -104,14 +105,15 @@ function restart_video(res, offset) {
 function get_video(req, res, lang) {
   var query = req.slot("VideoQuery");
 
-  console.log('Searching ... ' + query);
+  console.log("Searching ... " + query);
 
   return new Promise((resolve, reject) => {
-    var search = heroku + '/alexa-search/' + new Buffer(query).toString('base64');
+    var search = heroku + "/alexa-search/" + new Buffer(query).toString("base64");
 
     // Add German to search query depending on the intent used
-    if (lang === 'de-DE')
-      search += '?language=de';
+    if (lang === "de-DE") {
+      search += "?language=de";
+    }
 
     // Make request to download server
     request(search, function(err, res, body) {
@@ -121,10 +123,10 @@ function get_video(req, res, lang) {
       } else {
         // Convert body text in response to JSON object
         var body_json = JSON.parse(body);
-        if (body_json.status === 'error' && body_json.message === 'No results found') {
+        if (body_json.status === "error" && body_json.message === "No results found") {
           // Query did not return any video
           resolve({
-            message: response_messages[lang]['NO_RESULTS_FOUND'].formatUnicorn(query),
+            message: response_messages[lang]["NO_RESULTS_FOUND"].formatUnicorn(query),
             url: null,
             metadata: null
           });
@@ -134,14 +136,14 @@ function get_video(req, res, lang) {
           last_search = heroku + body_json.link;
           last_token = uuidv4();
 
-          console.log('YouTube URL: ' + metadata.original);
+          console.log("YouTube URL: " + metadata.original);
 
           wait_for_video(metadata.id, function() {
-            console.log('Audio URL: ' + last_search);
+            console.log("Audio URL: " + last_search);
 
             // Return audio URL from request to promise
             resolve({
-              message: response_messages[lang]['NOW_PLAYING'].formatUnicorn(metadata.title),
+              message: response_messages[lang]["NOW_PLAYING"].formatUnicorn(metadata.title),
               url: last_search,
               metadata: metadata
             });
@@ -160,9 +162,9 @@ function get_video(req, res, lang) {
       // Generate card for the Alexa mobile app
       var metadata = content.metadata;
       res.card({
-        type: 'Simple',
-        title: 'Search for "' + query + '"',
-        content: 'Alexa found "' + metadata.title + '" at ' + metadata.original + '.'
+        type: "Simple",
+        title: "Search for \"" + query + "\"",
+        content: "Alexa found \"" + metadata.title + "\" at " + metadata.original + "."
       });
 
       // Start playing the video!
@@ -185,7 +187,7 @@ function get_video(req, res, lang) {
  */
 function wait_for_video(id, callback) {
   setTimeout(function() {
-    request(heroku + '/alexa-check/' + id, function(err, res, body) {
+    request(heroku + "/alexa-check/" + id, function(err, res, body) {
       if (!err) {
         var body_json = JSON.parse(body);
         if (body_json.downloaded) {
@@ -216,7 +218,7 @@ app.pre = function(req, res, type) {
 // Looking up a video in English
 app.intent("GetVideoIntent", {
     "slots": {
-      "VideoQuery": "VIDEOS",
+      "VideoQuery": "VIDEOS"
     },
     "utterances": [
       "search for {-|VideoQuery}",
@@ -227,14 +229,14 @@ app.intent("GetVideoIntent", {
     ]
   },
   function(req, res) {
-    return get_video(req, res, 'en-US');
+    return get_video(req, res, "en-US");
   }
 );
 
 // Looking up a video in German
 app.intent("GetVideoGermanIntent", {
     "slots": {
-      "VideoQuery": "VIDEOS",
+      "VideoQuery": "VIDEOS"
     },
     "utterances": [
       "suchen nach {-|VideoQuery}",
@@ -245,37 +247,28 @@ app.intent("GetVideoGermanIntent", {
     ]
   },
   function(req, res) {
-    return get_video(req, res, 'de-DE');
+    return get_video(req, res, "de-DE");
   }
 );
 
-// Log playback started events
-app.audioPlayer("PlaybackStarted", function(req, res) {
-  console.log('Playback started.');
-});
-
 // Log playback failed events
 app.audioPlayer("PlaybackFailed", function(req, res) {
-  console.error('Playback failed.');
+  console.error("Playback failed.");
   console.error(req.data.request);
   console.error(req.data.request.error);
 });
 
 // Use playback finished events to repeat audio
 app.audioPlayer("PlaybackNearlyFinished", function(req, res) {
-  console.log('Playback nearly finished.');
-
   // Repeat is enabled, so begin next playback
   if (last_search && (repeat_infinitely || repeat_once)) {
-    console.log('Repeat was enabled. Playing ' + last_search + ' again ...');
-
     // Generate new token for the stream
     var new_token = uuidv4();
 
     // Inject the audio that was just playing back into Alexa
-    res.audioPlayerPlayStream('ENQUEUE', {
+    res.audioPlayerPlayStream("ENQUEUE", {
       url: last_search,
-      streamFormat: 'AUDIO_MPEG',
+      streamFormat: "AUDIO_MPEG",
       token: new_token,
       expectedPreviousToken: last_token,
       offsetInMilliseconds: 0
@@ -306,7 +299,7 @@ app.intent("AMAZON.ResumeIntent", {}, function(req, res) {
     restart_video(res, last_playback.stop - last_playback.start);
   }
   else {
-    res.say(response_messages[req.data.request.locale]['NOTHING_TO_RESUME']);
+    res.say(response_messages[req.data.request.locale]["NOTHING_TO_RESUME"]);
   }
   res.send();
 });
@@ -320,7 +313,7 @@ app.intent("AMAZON.PauseIntent", {}, function(req, res) {
     res.audioPlayerStop();
   }
   else {
-    res.say(response_messages[req.data.request.locale]['NOTHING_TO_RESUME']);
+    res.say(response_messages[req.data.request.locale]["NOTHING_TO_RESUME"]);
   }
   res.send();
 });
@@ -332,7 +325,7 @@ app.intent("AMAZON.StartOverIntent", {}, function(req, res) {
     restart_video(res, 0);
   }
   else {
-    res.say(response_messages[req.data.request.locale]['NOTHING_TO_REPEAT']);
+    res.say(response_messages[req.data.request.locale]["NOTHING_TO_REPEAT"]);
   }
   res.send();
 });
@@ -347,7 +340,7 @@ app.intent("AMAZON.StopIntent", {}, function(req, res) {
     res.audioPlayerClearQueue("REPLACE_ALL");
   }
   else {
-    res.say(response_messages[req.data.request.locale]['NOTHING_TO_REPEAT']);
+    res.say(response_messages[req.data.request.locale]["NOTHING_TO_REPEAT"]);
   }
   res.send();
 });
@@ -355,14 +348,16 @@ app.intent("AMAZON.StopIntent", {}, function(req, res) {
 // User told Alexa to repeat audio infinitely
 app.intent("AMAZON.RepeatIntent", {}, function(req, res) {
   // User searched for a video but playback ended
-  if (has_video() && !is_streaming_video())
+  if (has_video() && !is_streaming_video()) {
     restart_video(res, 0);
-  else
+  }
+  else {
     repeat_once = true;
+  }
 
   res.say(
-    response_messages[req.data.request.locale]['REPEAT_TRIGGERED']
-      .formatUnicorn(has_video() ? 'current' : 'next')
+    response_messages[req.data.request.locale]["REPEAT_TRIGGERED"]
+      .formatUnicorn(has_video() ? "current" : "next")
   ).send();
 });
 
@@ -372,12 +367,13 @@ app.intent("AMAZON.LoopOnIntent", {}, function(req, res) {
   repeat_infinitely = true;
 
   // User searched for a video but playback ended
-  if (has_video() && !is_streaming_video())
+  if (has_video() && !is_streaming_video()) {
     restart_video(res, 0);
+  }
 
   res.say(
-    response_messages[req.data.request.locale]['LOOP_ON_TRIGGERED']
-      .formatUnicorn(has_video() ? 'current' : 'next')
+    response_messages[req.data.request.locale]["LOOP_ON_TRIGGERED"]
+      .formatUnicorn(has_video() ? "current" : "next")
   ).send();
 });
 
@@ -386,8 +382,8 @@ app.intent("AMAZON.LoopOffIntent", {}, function(req, res) {
   repeat_infinitely = false;
 
   res.say(
-    response_messages[req.data.request.locale]['LOOP_OFF_TRIGGERED']
-      .formatUnicorn(has_video() ? 'current' : 'next')
+    response_messages[req.data.request.locale]["LOOP_OFF_TRIGGERED"]
+      .formatUnicorn(has_video() ? "current" : "next")
   ).send();
 });
 
