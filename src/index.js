@@ -246,15 +246,19 @@ app.audioPlayer("PlaybackNearlyFinished", function(req, res) {
     console.log('Repeat was enabled. Playing ' + last_search.url + ' again ...');
 
     // Generate new token for the stream
-    last_token = uuidv4();
+    var new_token = uuidv4();
 
     // Inject the audio that was just playing back into Alexa
     res.audioPlayerPlayStream('ENQUEUE', {
       url: last_search.url,
       streamFormat: 'AUDIO_MPEG',
-      token: last_token,
+      token: new_token,
+      expectedPreviousToken: last_token,
       offsetInMilliseconds: 0
     });
+
+    // Set last token to new token
+    last_token = new_token;
 
     // Record playback start time
     last_playback.start = new Date().getTime();
