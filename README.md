@@ -4,7 +4,7 @@ By default, Amazon Alexa does not support playing audio from YouTube. In fact, i
 
 > Alexa, search YouTube for Frost Hyperventilate.
 
-This skill will then perform a search, finding [the most relevant video](https://www.youtube.com/watch?v=Ol592sakmZU) that matches the query. It will then stream the video's audio to your device for your enjoyment. :)
+This skill performs a search, finding [the most relevant video](https://www.youtube.com/watch?v=Ol592sakmZU) that matches the query. It then streams the video (audio only) to your device for your enjoyment. :)
 
 ## Additional Information
 
