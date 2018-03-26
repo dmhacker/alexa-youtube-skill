@@ -1,15 +1,15 @@
 {
   "name": "alexa-youtube-skill",
-  "version": "2.0.1",
-  "description": "You can search YouTube for video audio now!",
+  "version": "2.0.2",
+  "description": "Alexa devices can search YouTube for audio now!",
   "engines": {
     "node": "6.1.0"
   },
   "main": "index.js",
   "dependencies": {
-    "alexa-app": "4.0.1",
-    "request": "2.81.0",
-    "ssml-builder": "^0.2.4"
+    "alexa-app": "4.2.1",
+    "request": "2.85.0",
+    "ssml-builder": "0.4.3"
   },
   "repository": {
     "type": "git",
