@@ -18,5 +18,15 @@ module.exports = {
     "LOOP_OFF_TRIGGERED": "Ich werde deine Auswahl nicht mehr wiederholen.",
     "REPEAT_TRIGGERED": "Ich werde deine Auswahl einmal wiederholen.",
     "HELP_TRIGGERED": "Um die YouTube-Fertigkeit zu verwenden, musst du die Fähigkeit angeben, nach dem gewünschten Video zu suchen. Wenn das Video abgespielt wird, können Sie Alexa außerdem mitteilen, dass es angehalten, neu gestartet oder wiederholt werden soll."
+  },
+  "fr-FR": {
+    "NO_RESULTS_FOUND": "{0} n'a pas été trouvé sur YouTube.",
+    "NOW_PLAYING": "Je suis en train de jouer {0}.",
+    "NOTHING_TO_RESUME": "Il n'y a aucun élément en cours de lecture.",
+    "NOTHING_TO_REPEAT": "Vous n'avez pas sélectionné de vidéo à écouter.",
+    "LOOP_ON_TRIGGERED": "Je vais répéter {0} à l'infini.",
+    "LOOP_OFF_TRIGGERED": "Je ne vais plus répéter {0} .",
+    "REPEAT_TRIGGERED": "Je ne vais répéter {0} une fois.",
+    "HELP_TRIGGERED": "Pour utiliser cette skill, dites à Alexa de rechercher la vidéo que vous souhaitez. De plus, lorsque la lecture est en cours, vous pouvez dire à Alexa de mettre en pause, redémarrer, ou répéter."
   }
 }
