@@ -110,9 +110,11 @@ function get_video(req, res, lang) {
   return new Promise((resolve, reject) => {
     var search = heroku + "/alexa-search/" + new Buffer(query).toString("base64");
 
-    // Add German to search query depending on the intent used
+    // Add German and French to search query depending on the intent used
     if (lang === "de-DE") {
       search += "?language=de";
+    } else if (lang === "fr-FR") {
+      search += "?language=fr";
     }
 
     // Make request to download server
@@ -248,6 +250,25 @@ app.intent("GetVideoGermanIntent", {
   },
   function(req, res) {
     return get_video(req, res, "de-DE");
+  }
+);
+
+// Looking up a video in French
+app.intent("GetVideoFrenchIntent", {
+    "slots": {
+      "VideoQuery": "VIDEOS"
+    },
+    "utterances": [
+      "recherche {-|VideoQuery}",
+      "cherche {-|VideoQuery}",
+      "joue {-|VideoQuery}",
+      "met {-|VideoQuery}",
+      "lance {-|VideoQuery}",
+      "démarre {-|VideoQuery}"
+    ]
+  },
+  function(req, res) {
+    return get_video(req, res, "fr-FR");
   }
 );
 
