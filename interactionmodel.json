@@ -1,0 +1,174 @@
+{
+    "interactionModel": {
+        "languageModel": {
+            "invocationName": "youtube",
+            "intents": [
+                {
+                    "name": "AMAZON.CancelIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.HelpIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.LoopOffIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.LoopOnIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.PauseIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.RepeatIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.ResumeIntent",
+                    "samples": []
+                },
+                {
+                    "name": "AMAZON.StopIntent",
+                    "samples": []
+                },
+                {
+                    "name": "GetVideoIntent",
+                    "slots": [
+                        {
+                            "name": "VideoQuery",
+                            "type": "VIDEOS"
+                        }
+                    ],
+                    "samples": [
+                        "trova {VideoQuery}",
+                        "cerca {VideoQuery}",
+                        "suona {VideoQuery}",
+                        "incomincia a suonare {VideoQuery}",
+                        "metti {VideoQuery}"
+                    ]
+                }
+            ],
+            "types": [
+                {
+                    "name": "VIDEOS",
+                    "values": [
+                        {
+                            "name": {
+                                "value": "prince"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "the fray"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "the rolling stones"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "toad the wet sproket"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "KC and the sunshine band"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "john travolta and olivia newton john"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "DJ jazzy jeff and the fresh prince"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "lola"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "hello dolly"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "love me tender"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "fools gold"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "roberta flack killing me softly with his song"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "stevie wonder superstition"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "boston"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "full circle"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "dubstar"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "underworld"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "orbital"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "let me be your fantasy"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "pop will eat itself"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "ultra nate"
+                            }
+                        },
+                        {
+                            "name": {
+                                "value": "4 hours Peaceful and Relaxing Instrumental Music"
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}
