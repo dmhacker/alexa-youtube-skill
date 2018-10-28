@@ -110,7 +110,7 @@ function get_video(req, res, lang) {
   return new Promise((resolve, reject) => {
     var search = heroku + "/alexa-search/" + new Buffer(query).toString("base64");
 
-    // Add German, French and Italian to search query depending on the intent used
+    // Add German, French and Italian language to search query depending on the intent used
     if (lang === "de-DE") {
       search += "?language=de";
     } else if (lang === "fr-FR") {
