@@ -1,5 +1,6 @@
 # NodeJS files & folders
 src/node_modules
+build
 
 # Logs
 logs
