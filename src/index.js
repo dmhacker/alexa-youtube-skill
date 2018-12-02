@@ -15,7 +15,7 @@ var app = new alexa.app("youtube");
 // Set Heroku URL
 var heroku = process.env.HEROKU_APP_URL || "https://dmhacker-youtube.herokuapp.com";
 
-// Variables relating to videos waiting for user input
+// Variables relating to videos waiting for user input 
 var buffer_search = null; 
 
 // Variables relating to the last video searched
@@ -136,7 +136,7 @@ function search_video(req, res, lang) {
     speech.say(content.message);
     res.say(speech.ssml(true));
 
-    if (content.metdata) {
+    if (content.metadata) {
       var metadata = content.metadata;
 
       // Generate card for the Alexa mobile app
@@ -148,6 +148,8 @@ function search_video(req, res, lang) {
 
       // Set most recently searched for video
       buffer_search = metadata;
+
+      res.reprompt().shouldEndSession(false);
     }
 
     // Send response to Alexa device
@@ -187,8 +189,8 @@ function download_video(req, res) {
 
         // Wait until video is downloaded by repeatedly pinging cache
         console.log("Waiting for ... " + last_search);
-        wait_for_video(metadata.id, function() {
-          console.log(last_search + " will be played.");
+        wait_for_video(id, function() {
+          console.log(last_search + " has finished downloading.");
           resolve();
         });
       }
@@ -196,7 +198,7 @@ function download_video(req, res) {
   }).then(function() {
     // Have Alexa tell the user that the video is finished downloading
     var speech = new ssml();
-    speech.say(response_messages[lang]["NOW_PLAYING"].formatUnicorn(buffer_search.title));
+    speech.say(response_messages[req.data.request.locale]["NOW_PLAYING"].formatUnicorn(buffer_search.title));
     res.say(speech.ssml(true));
 
     // Start playing the video!
