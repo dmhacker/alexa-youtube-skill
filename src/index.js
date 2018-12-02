@@ -1,35 +1,22 @@
 "use strict";
 
-// Enables Python-esque formatting
-// (e.g. "Hello {0}!".formatUnicorn("world") => "Hello world!")
-String.prototype.formatUnicorn = String.prototype.formatUnicorn || function () {
-  "use strict";
-  var str = this.toString();
-  if (arguments.length) {
-    var t = typeof arguments[0];
-    var key;
-    var args = ("string" === t || "number" === t) ?
-      Array.prototype.slice.call(arguments)
-      : arguments[0];
-
-    for (key in args) {
-      str = str.replace(new RegExp("\\{" + key + "\\}", "gi"), args[key]);
-    }
-  }
-  return str;
-};
+// Setup Python-esque formatting
+String.prototype.formatUnicorn = String.prototype.formatUnicorn || require("./util/formatting.js");
 
 // Required packages
 var alexa = require("alexa-app");
 var request = require("request");
 var ssml = require("ssml-builder");
-var response_messages = require("./responses");
+var response_messages = require("./util/responses.js");
 
 // Create Alexa skill application
 var app = new alexa.app("youtube");
 
 // Set Heroku URL
 var heroku = process.env.HEROKU_APP_URL || "https://dmhacker-youtube.herokuapp.com";
+
+// Variables relating to videos waiting for user input
+var buffer_search = null; 
 
 // Variables relating to the last video searched
 var last_search = null;
@@ -95,20 +82,19 @@ function restart_video(res, offset) {
 }
 
 /**
- * Downloads the YouTube video audio via a Promise.
+ * Searches a YouTube video matching the user's query.
  *
  * @param  {Object} req  A request from an Alexa device
  * @param  {Object} res  A response that will be sent to the device
  * @param  {String} lang The language of the query
  * @return {Promise} Execution of the request
  */
-function get_video(req, res, lang) {
+function search_video(req, res, lang) {
   var query = req.slot("VideoQuery");
-
-  console.log("Searching ... " + query);
+  console.log("Requesting search ... " + query);
 
   return new Promise((resolve, reject) => {
-    var search = heroku + "/alexa-search/" + new Buffer(query).toString("base64");
+    var search = heroku + "/alexa/v3/search/" + new Buffer(query).toString("base64");
 
     // Populate URL with correct language 
     if (lang === "de-DE") {
@@ -119,7 +105,7 @@ function get_video(req, res, lang) {
       search += "?language=it";
     }
 
-    // Make request to download server
+    // Make search request to server
     request(search, function(err, res, body) {
       if (err) {
         // Error in the request
@@ -131,54 +117,95 @@ function get_video(req, res, lang) {
           // Query did not return any video
           resolve({
             message: response_messages[lang]["NO_RESULTS_FOUND"].formatUnicorn(query),
-            url: null,
             metadata: null
           });
         } else {
-          // Set last search & token to equal the current video's parameters
-          var metadata = body_json.info;
-          last_search = heroku + body_json.link;
-          last_token = uuidv4();
-
-          console.log("YouTube URL: " + metadata.original);
-
-          wait_for_video(metadata.id, function() {
-            console.log("Audio URL: " + last_search);
-
-            // Return audio URL from request to promise
-            resolve({
-              message: response_messages[lang]["NOW_PLAYING"].formatUnicorn(metadata.title),
-              url: last_search,
-              metadata: metadata
-            });
+          // Extract and return metadata
+          var metadata = body_json.video;
+          console.log("Found ... " + metadata.title + " @ " + metadata.link);
+          resolve({
+            message: response_messages[lang]["ASK_TO_PLAY"].formatUnicorn(metadata.title),
+            metadata: metadata
           });
         }
       }
     });
-
   }).then(function(content) {
     // Have Alexa say the message fetched from the Heroku server
     var speech = new ssml();
     speech.say(content.message);
     res.say(speech.ssml(true));
 
-    if (content.url) {
-      // Generate card for the Alexa mobile app
+    if (content.metdata) {
       var metadata = content.metadata;
+
+      // Generate card for the Alexa mobile app
       res.card({
         type: "Simple",
         title: "Search for \"" + query + "\"",
-        content: "Alexa found \"" + metadata.title + "\" at " + metadata.original + "."
+        content: "Alexa found \"" + metadata.title + "\" at " + metadata.link + "."
       });
 
-      // Start playing the video!
-      restart_video(res, 0);
+      // Set most recently searched for video
+      buffer_search = metadata;
     }
 
     // Send response to Alexa device
     res.send();
   }).catch(function(reason) {
-    // Error in promise
+    // Error occurred in the promise
+    res.fail(reason);
+  });
+}
+
+/**
+ * Downloads the mostly recent video the user requested. 
+ *
+ * @param  {Object} req  A request from an Alexa device
+ * @param  {Object} res  A response that will be sent to the device
+ * @return {Promise} Execution of the request
+ */
+function download_video(req, res) {
+  var id = buffer_search.id;
+  console.log("Requesting download ... " + id);
+
+  return new Promise((resolve, reject) => {
+    var download = heroku + "/alexa/v3/download/" + id; 
+
+    // Make download request to server
+    request(download, function(err, res, body) {
+      if (err) {
+        // Error in the request
+        reject(err.message);
+      } else {
+        // Convert body text in response to JSON object
+        var body_json = JSON.parse(body);
+
+        // Set last search & token to equal the current video's parameters
+        last_search = heroku + body_json.link;
+        last_token = uuidv4();
+
+        // Wait until video is downloaded by repeatedly pinging cache
+        console.log("Waiting for ... " + last_search);
+        wait_for_video(metadata.id, function() {
+          console.log(last_search + " will be played.");
+          resolve();
+        });
+      }
+    });
+  }).then(function() {
+    // Have Alexa tell the user that the video is finished downloading
+    var speech = new ssml();
+    speech.say(response_messages[lang]["NOW_PLAYING"].formatUnicorn(buffer_search.title));
+    res.say(speech.ssml(true));
+
+    // Start playing the video!
+    restart_video(res, 0);
+
+    // Send response to Alexa device
+    res.send();
+  }).catch(function(reason) {
+    // Error occurred in the promise
     res.fail(reason);
   });
 }
@@ -191,7 +218,7 @@ function get_video(req, res, lang) {
  */
 function wait_for_video(id, callback) {
   setTimeout(function() {
-    request(heroku + "/alexa-check/" + id, function(err, res, body) {
+    request(heroku + "/alexa/v3/cache/" + id, function(err, res, body) {
       if (!err) {
         var body_json = JSON.parse(body);
         if (body_json.downloaded) {
@@ -233,7 +260,7 @@ app.intent("GetVideoIntent", {
     ]
   },
   function(req, res) {
-    return get_video(req, res, "en-US");
+    return search_video(req, res, "en-US");
   }
 );
 
@@ -251,7 +278,7 @@ app.intent("GetVideoGermanIntent", {
     ]
   },
   function(req, res) {
-    return get_video(req, res, "de-DE");
+    return search_video(req, res, "de-DE");
   }
 );
 
@@ -270,7 +297,7 @@ app.intent("GetVideoFrenchIntent", {
     ]
   },
   function(req, res) {
-    return get_video(req, res, "fr-FR");
+    return search_video(req, res, "fr-FR");
   }
 );
 
@@ -288,9 +315,23 @@ app.intent("GetVideoItalianIntent", {
     ]
   },
   function(req, res) {
-    return get_video(req, res, "it-IT");
+    return search_video(req, res, "it-IT");
   }
 );
+
+app.intent("AMAZON.YesIntent", function(req, res) {
+  if (buffer_search == null) {
+    res.send();
+  }
+  else {
+    return download_video(req, res);
+  }
+});
+
+app.intent("AMAZON.NoIntent", function(req, res) {
+  buffer_search = null;
+  res.send();
+});
 
 // Log playback failed events
 app.audioPlayer("PlaybackFailed", function(req, res) {
