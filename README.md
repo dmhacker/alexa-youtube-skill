@@ -15,7 +15,7 @@ It then streams the video (audio only) to your Alexa device for your enjoyment. 
 __Setup:__ The instructions have been moved to this repository's [wiki page](https://github.com/dmhacker/alexa-youtube-skill/wiki).
 
 __Migration:__ Version 3.x.x is the latest version and fixes several critical issues present in earlier versions. 
-To migrate to v3, please use [this guide on the wiki page](https://github.com/dmhacker/alexa-youtube-skill/wiki/Migrating-to-Version-3).
+To migrate to v3, please use [this guide on the wiki](https://github.com/dmhacker/alexa-youtube-skill/wiki/Migrating-to-Version-3).
 
 __Disclaimer:__ This skill is not officially supported by YouTube and will never be published on Amazon. 
 It was originally intended as a proof-of-concept, but instructions on setting it up are provided (see above).
