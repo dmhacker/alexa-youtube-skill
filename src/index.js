@@ -23,7 +23,7 @@ var last_search = {};
 var last_token = {};
 var last_playback = {};
 
-// Current song is repeating
+// Variables for repetition of current song 
 var repeat_infinitely = {};
 var repeat_once = {};
 
@@ -194,6 +194,10 @@ function download_video(req, res) {
 
         // Set last search & token to equal the current video's parameters
         last_search[userId] = heroku + body_json.link;
+
+        // NOTE: this is somewhat of hack to get Alexa to ignore an errant PlaybackNearlyFinished event
+        repeat_once[userId] = true;
+        repeat_infinitely[userId] = false;
 
         // Wait until video is downloaded by repeatedly pinging cache
         console.log("Waiting for ... " + last_search[userId]);
@@ -469,7 +473,7 @@ app.intent("AMAZON.PauseIntent", {}, function(req, res) {
   res.send();
 });
 
-// User told Alexa to repeat audio infinitely
+// User told Alexa to repeat audio once 
 app.intent("AMAZON.RepeatIntent", {}, function(req, res) {
   var userId = req.userId;
 
