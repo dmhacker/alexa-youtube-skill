@@ -8,6 +8,7 @@ var alexa = require("alexa-app");
 var request = require("request");
 var ssml = require("ssml-builder");
 var response_messages = require("./util/responses.js");
+response_messages['en-GB'] = response_messages['en-US'];
 
 // Create Alexa skill application
 var app = new alexa.app("youtube");
