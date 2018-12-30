@@ -169,10 +169,10 @@ function search_video(req, res, lang) {
     }
 
     // Send response to Alexa device
-    res.send();
+    return res.send();
   }).catch(function(reason) {
     // Error occurred in the promise
-    res.fail(reason);
+    return res.fail(reason);
   });
 }
 
@@ -212,11 +212,11 @@ function check_cache_ready(id, timeout) {
             }
             var interval = Math.min(cache_polling_interval, timeout);
             console.log("Will check again in " + interval + "ms (timeout: " + timeout + "ms).");
-            resolve(new Promise((_resolve) => {
+            resolve(new Promise((_resolve, _reject) => {
               setTimeout(() => {
-                _resolve(check_cache_ready(id, timeout - cache_polling_interval));
+                _resolve(check_cache_ready(id, timeout - cache_polling_interval).catch(_reject));
               }, interval);
-            }));
+            }).catch(reject));
           }
         }
         else {
@@ -291,10 +291,10 @@ function download_video(req, res) {
     respond_play(req, res);
 
     // Send response to Alexa device
-    res.send();
+    return res.send();
   }).catch(function(reason) {
     // Error occurred in the promise
-    res.fail(reason);
+    return res.fail(reason);
   });
 }
 
@@ -322,14 +322,18 @@ function wait_for_video(id, callback) {
 app.pre = function(req, res, type) {
   if (req.data.session !== undefined) {
     if (req.data.session.application.applicationId !== process.env.ALEXA_APPLICATION_ID) {
-      res.fail("Invalid application");
+      return res.fail("Invalid application");
     }
   }
   else {
     if (req.applicationId !== process.env.ALEXA_APPLICATION_ID) {
-      res.fail("Invalid application");
+      return res.fail("Invalid application");
     }
   }
+};
+
+app.error = function(exc, req, res) {
+  res.say("An error occured: " + exc);
 };
 
 // Looking up a video in English
@@ -420,9 +424,10 @@ function interactively_wait_for_video(req, res) {
       res.say(speech.ssml(true));
       res.reprompt(message).shouldEndSession(false);
     }
-    res.send();
+    return res.send();
   }).catch(reason => {
-    res.fail(reason);
+    console.error(reason);
+    return res.fail(reason);
   });
 }
 
@@ -430,7 +435,7 @@ app.intent("AMAZON.YesIntent", function(req, res) {
   var userId = req.userId;
 
   if (!buffer_search.hasOwnProperty(userId) || buffer_search[userId] == null) {
-    res.send();
+    return res.send();
   }
   else if (!interactive_wait) {
     return download_video(req, res);
@@ -445,7 +450,7 @@ app.intent("AMAZON.YesIntent", function(req, res) {
         return interactively_wait_for_video(req, res);
       })
       .catch(reason => {
-        res.fail(reason);
+        return res.fail(reason);
       });
     }
     return interactively_wait_for_video(req, res);
@@ -455,7 +460,7 @@ app.intent("AMAZON.YesIntent", function(req, res) {
 app.intent("AMAZON.NoIntent", function(req, res) {
   var userId = req.userId;
   buffer_search[userId] = null;
-  res.send();
+  return res.send();
 });
 
 // Log playback failed events
@@ -499,7 +504,7 @@ app.audioPlayer("PlaybackNearlyFinished", function(req, res) {
     repeat_once[userId] = false;
 
     // Send response to Alexa device
-    res.send();
+    return res.send();
   }
   else {
     // Token is set to null because playback is done
@@ -519,7 +524,7 @@ app.intent("AMAZON.StartOverIntent", {}, function(req, res) {
     res.say(response_messages[req.data.request.locale]["NOTHING_TO_REPEAT"]);
   }
 
-  res.send();
+  return res.send();
 });
 
 var stop_intent = function(req, res) {
@@ -540,7 +545,7 @@ var stop_intent = function(req, res) {
     res.say(response_messages[req.data.request.locale]["NOTHING_TO_REPEAT"]);
   }
 
-  res.send();
+  return res.send();
 };
 
 // User told Alexa to stop playing audio
@@ -559,7 +564,7 @@ app.intent("AMAZON.ResumeIntent", {}, function(req, res) {
     res.say(response_messages[req.data.request.locale]["NOTHING_TO_RESUME"]);
   }
 
-  res.send();
+  return res.send();
 });
 
 // User told Alexa to pause the audio
@@ -578,7 +583,7 @@ app.intent("AMAZON.PauseIntent", {}, function(req, res) {
     res.say(response_messages[req.data.request.locale]["NOTHING_TO_RESUME"]);
   }
 
-  res.send();
+  return res.send();
 });
 
 // User told Alexa to repeat audio once
@@ -593,7 +598,7 @@ app.intent("AMAZON.RepeatIntent", {}, function(req, res) {
     repeat_once[userId] = true;
   }
 
-  res.say(
+  return res.say(
     response_messages[req.data.request.locale]["REPEAT_TRIGGERED"]
       .formatUnicorn(has_video(userId) ? "current" : "next")
   ).send();
@@ -610,7 +615,7 @@ app.intent("AMAZON.LoopOnIntent", {}, function(req, res) {
     restart_video(req, res, 0);
   }
 
-  res.say(
+  return res.say(
     response_messages[req.data.request.locale]["LOOP_ON_TRIGGERED"]
       .formatUnicorn(has_video(userId) ? "current" : "next")
   ).send();
@@ -622,7 +627,7 @@ app.intent("AMAZON.LoopOffIntent", {}, function(req, res) {
 
   repeat_infinitely[userId] = false;
 
-  res.say(
+  return res.say(
     response_messages[req.data.request.locale]["LOOP_OFF_TRIGGERED"]
       .formatUnicorn(has_video(userId) ? "current" : "next")
   ).send();
@@ -630,7 +635,7 @@ app.intent("AMAZON.LoopOffIntent", {}, function(req, res) {
 
 // User asked Alexa for help
 app.intent("AMAZON.HelpIntent", {}, function(req, res) {
-  res.say(response_messages[req.data.request.locale]["HELP_TRIGGERED"]).send();
+  return res.say(response_messages[req.data.request.locale]["HELP_TRIGGERED"]).send();
 });
 
 exports.handler = app.lambda();
