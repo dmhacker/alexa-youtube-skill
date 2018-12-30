@@ -128,7 +128,7 @@ function search_video(req, res, lang) {
       } else {
         // Convert body text in response to JSON object
         var body_json = JSON.parse(body);
-        if (body_json.status === "error" && body_json.message === "No results found") {
+        if (body_json.state === "error" && body_json.message === "No results found") {
           // Query did not return any video
           resolve({
             message: response_messages[lang]["NO_RESULTS_FOUND"].formatUnicorn(query),
