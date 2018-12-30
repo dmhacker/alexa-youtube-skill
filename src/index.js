@@ -13,19 +13,26 @@ var response_messages = require("./util/responses.js");
 var app = new alexa.app("youtube");
 
 // Set Heroku URL
-var heroku = process.env.HEROKU_APP_URL || "https://dmhacker-youtube.herokuapp.com";
+const heroku = process.env.HEROKU_APP_URL || "https://dmhacker-youtube.herokuapp.com";
 
-// Variables relating to videos waiting for user input 
-var buffer_search = {}; 
+const interactive_wait = process.env.INTERACTIVE_WAIT == "true";
+const cache_polling_interval = parseInt(process.env.CACHE_POLLING_INTERVAL || "10000", 10);
+const alexa_request_timeout = parseInt(process.env.ALEXA_REQUEST_TIMEOUT || "45000", 10);
+
+// Variables relating to videos waiting for user input
+var buffer_search = {};
 
 // Variables relating to the last video searched
 var last_search = {};
 var last_token = {};
 var last_playback = {};
 
-// Variables for repetition of current song 
+// Variables for repetition of current song
 var repeat_infinitely = {};
 var repeat_once = {};
+
+// To track whether downloading is already in progress
+var downloading = false;
 
 /**
  * Generates a random UUID. Used for creating an audio stream token.
@@ -103,7 +110,7 @@ function search_video(req, res, lang) {
   return new Promise((resolve, reject) => {
     var search = heroku + "/alexa/v3/search/" + new Buffer(query).toString("base64");
 
-    // Populate URL with correct language 
+    // Populate URL with correct language
     if (lang === "de-DE") {
       search += "?language=de";
     } else if (lang === "fr-FR") {
@@ -155,6 +162,7 @@ function search_video(req, res, lang) {
 
       // Set most recently searched for video
       buffer_search[userId] = metadata;
+      downloading = false;
 
       res.reprompt().shouldEndSession(false);
     }
@@ -167,8 +175,77 @@ function search_video(req, res, lang) {
   });
 }
 
+function make_download_video_request(id) {
+  return new Promise((resolve, reject) => {
+    request(heroku + "/alexa/v3/download/" + id, function(err, res, body) {
+      if (err) {
+        console.error(err.message);
+        reject(err.message);
+      } else {
+        var body_json = JSON.parse(body);
+        var url = heroku + body_json.link;
+        console.log("Requested downloading for ... " + url);
+        resolve(url);
+      }
+    });
+  });
+}
+
+function check_cache_ready(id, timeout) {
+  return new Promise((resolve, reject) => {
+      request(heroku + "/alexa/v3/cache/" + id, function(err, res, body) {
+      if (!err) {
+        var body_json = JSON.parse(body);
+        if (body_json.hasOwnProperty('downloaded') && body_json['downloaded'] != null) {
+          if (body_json.downloaded) {
+            downloading = false;
+            console.log(id + " ready in the cache!");
+            resolve();
+          }
+          else {
+            downloading = true;
+            console.log(id + " being cached atm.");
+            if (timeout <= 0) {
+              resolve();
+              return;
+            }
+            var interval = Math.min(cache_polling_interval, timeout);
+            console.log("Will check again in " + interval + "ms (timeout: " + timeout + "ms).");
+            resolve(new Promise((_resolve) => {
+              setTimeout(() => {
+                _resolve(check_cache_ready(id, timeout - cache_polling_interval));
+              }, interval);
+            }));
+          }
+        }
+        else {
+          console.log(id + " never cached yet.");
+          reject("Video unavailable");
+        }
+      }
+      else {
+        console.error(err.message);
+        reject(err.message);
+      }
+    });
+  });
+}
+
+function respond_play(req, res) {
+  var userId = req.userId;
+  var speech = new ssml();
+  var title = buffer_search[userId].title;
+  var message = response_messages[req.data.request.locale]["NOW_PLAYING"].formatUnicorn(title);
+  speech.say(message);
+  res.say(speech.ssml(true));
+
+  console.log("Start playing ... " + title);
+  // Start playing the video!
+  restart_video(req, res, 0);
+}
+
 /**
- * Downloads the mostly recent video the user requested. 
+ * Downloads the mostly recent video the user requested.
  *
  * @param  {Object} req  A request from an Alexa device
  * @param  {Object} res  A response that will be sent to the device
@@ -181,7 +258,7 @@ function download_video(req, res) {
   console.log("Requesting download ... " + id);
 
   return new Promise((resolve, reject) => {
-    var download = heroku + "/alexa/v3/download/" + id; 
+    var download = heroku + "/alexa/v3/download/" + id;
 
     // Make download request to server
     request(download, function(err, res, body) {
@@ -195,9 +272,10 @@ function download_video(req, res) {
         // Set last search & token to equal the current video's parameters
         last_search[userId] = heroku + body_json.link;
 
+        // MX: Not convinced this should be necessary ...
         // NOTE: this is somewhat of hack to get Alexa to ignore an errant PlaybackNearlyFinished event
-        repeat_once[userId] = true;
-        repeat_infinitely[userId] = false;
+        // repeat_once[userId] = true;
+        // repeat_infinitely[userId] = false;
 
         // Wait until video is downloaded by repeatedly pinging cache
         console.log("Waiting for ... " + last_search[userId]);
@@ -209,12 +287,7 @@ function download_video(req, res) {
     });
   }).then(function() {
     // Have Alexa tell the user that the video is finished downloading
-    var speech = new ssml();
-    speech.say(response_messages[req.data.request.locale]["NOW_PLAYING"].formatUnicorn(buffer_search[userId].title));
-    res.say(speech.ssml(true));
-
-    // Start playing the video!
-    restart_video(req, res, 0);
+    respond_play(req, res);
 
     // Send response to Alexa device
     res.send();
@@ -231,19 +304,17 @@ function download_video(req, res) {
  * @param  {Function} callback The function to execute about load completion
  */
 function wait_for_video(id, callback) {
-  setTimeout(function() {
-    request(heroku + "/alexa/v3/cache/" + id, function(err, res, body) {
-      if (!err) {
-        var body_json = JSON.parse(body);
-        if (body_json.downloaded) {
-          callback();
-        }
-        else {
-          wait_for_video(id, callback);
-        }
+  request(heroku + "/alexa/v3/cache/" + id, function(err, res, body) {
+    if (!err) {
+      var body_json = JSON.parse(body);
+      if (body_json.downloaded) {
+        callback();
       }
-    });
-  }, 2000);
+      else {
+        setTimeout(wait_for_video, cache_polling_interval, id, callback);
+      }
+    }
+  });
 }
 
 // Filter out bad requests (the client's ID is not the same as the server's)
@@ -333,14 +404,50 @@ app.intent("GetVideoItalianIntent", {
   }
 );
 
+function interactively_wait_for_video(req, res) {
+  var userId = req.userId;
+  var id = buffer_search[userId].id;
+  return check_cache_ready(id, alexa_request_timeout).then(() => {
+    if (!downloading) {
+      respond_play(req, res);
+    }
+    else {
+      console.log("Asking whether to continue waiting ...");
+      var message = "Download still in progress. Would you like to keep waiting?";
+      var speech = new ssml();
+      speech.say(message);
+      res.say(speech.ssml(true));
+      res.reprompt(message).shouldEndSession(false);
+    }
+    res.send();
+  }).catch(reason => {
+    res.fail(reason);
+  });
+}
+
 app.intent("AMAZON.YesIntent", function(req, res) {
   var userId = req.userId;
 
   if (!buffer_search.hasOwnProperty(userId) || buffer_search[userId] == null) {
     res.send();
   }
-  else {
+  else if (!interactive_wait) {
     return download_video(req, res);
+  }
+  else {
+    var id = buffer_search[userId].id;
+    if (!downloading) {
+      return make_download_video_request(id)
+      .then(url => {
+        downloading = true;
+        last_search[userId] = url;
+        return interactively_wait_for_video(req, res);
+      })
+      .catch(reason => {
+        res.fail(reason);
+      });
+    }
+    return interactively_wait_for_video(req, res);
   }
 });
 
@@ -362,9 +469,9 @@ app.audioPlayer("PlaybackNearlyFinished", function(req, res) {
   var userId = req.userId;
 
   // Repeat is enabled, so begin next playback
-  if (has_video(userId) && 
-    ((repeat_infinitely.hasOwnProperty(userId) && repeat_infinitely[userId]) || 
-    (repeat_once.hasOwnProperty(userId) && repeat_once[userId]))) 
+  if (has_video(userId) &&
+    ((repeat_infinitely.hasOwnProperty(userId) && repeat_infinitely[userId]) ||
+    (repeat_once.hasOwnProperty(userId) && repeat_once[userId])))
   {
     // Generate new token for the stream
     var new_token = uuidv4();
@@ -473,7 +580,7 @@ app.intent("AMAZON.PauseIntent", {}, function(req, res) {
   res.send();
 });
 
-// User told Alexa to repeat audio once 
+// User told Alexa to repeat audio once
 app.intent("AMAZON.RepeatIntent", {}, function(req, res) {
   var userId = req.userId;
 
