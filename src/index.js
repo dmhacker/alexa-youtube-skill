@@ -17,8 +17,8 @@ const heroku = process.env.HEROKU_APP_URL || "https://dmhacker-youtube.herokuapp
 const interactive_wait = !(process.env.DISABLE_INTERACTIVE_WAIT === "true" || 
                            process.env.DISABLE_INTERACTIVE_WAIT === true ||
                            process.env.DISABLE_INTERACTIVE_WAIT === 1);
-const cache_polling_interval = parseInt(process.env.CACHE_POLLING_INTERVAL || "5000", 10);
-const ask_interval = parseInt(process.env.ASK_INTERVAL || "45000", 10);
+const cache_polling_interval = Math.max(1000, parseInt(process.env.CACHE_POLLING_INTERVAL || "5000", 10));
+const ask_interval = Math.max(30000, parseInt(process.env.ASK_INTERVAL || "45000", 10));
 
 // Variables relating to videos waiting for user input
 var buffer_search = {};
