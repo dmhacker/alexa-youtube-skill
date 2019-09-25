@@ -1,9 +1,9 @@
 {
   "name": "alexa-youtube-skill",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "Use Alexa to search YouTube for your favorite videos",
   "engines": {
-    "node": "6.1.0"
+    "node": ">=10.16.3"
   },
   "main": "index.js",
   "dependencies": {
