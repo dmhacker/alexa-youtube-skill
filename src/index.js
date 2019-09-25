@@ -206,12 +206,12 @@ function wait_on_interactive_download(req, res) {
   let user_id = req.userId;
   return ping_on_interactive_download(req, buffer_search[user_id].id, ASK_INTERVAL).then(() => {
     if (downloading_users.has(user_id)) {
-      console.log("Asking user if they want to continue with download.");
       let message = response_messages[req.data.request.locale]["ASK_TO_CONTINUE"];
       let speech = new ssml();
       speech.say(message);
       res.say(speech.ssml(true));
       res.reprompt(message).shouldEndSession(false);
+      console.log("User has been asked if they want to continue with download.");
     } else {
       on_download_finish(req, res);
     }
@@ -246,13 +246,13 @@ function ping_on_interactive_download(req, id, timeout) {
             resolve();
           } else {
             downloading_users.add(user_id);
-            console.log(`${id} is still downloading.`);
             if (timeout <= 0) {
               resolve();
               return;
             }
             let interval = Math.min(CACHE_POLLING_INTERVAL, timeout);
-            console.log(`Checking again in ${interval} ms (interactive delay: ${timeout} ms).`);
+            console.log(`Still downloading. Next ping occurs in ${interval} ms.`);
+            console.log(`User will be prompted in ${timeout} ms.`);
             resolve(new Promise((_resolve, _reject) => {
               setTimeout(() => {
                 _resolve(ping_on_interactive_download(req, id, timeout - CACHE_POLLING_INTERVAL)
@@ -282,6 +282,7 @@ function ping_on_interactive_download(req, id, timeout) {
  * @return {Promise} Execution of the request
  */
 function request_blocking_download(req, res) {
+  let user_id = req.userId;
   let id = buffer_search[user_id].id;
   console.log(`${id} was requested for download.`);
   return new Promise((resolve, reject) => {
@@ -289,7 +290,6 @@ function request_blocking_download(req, res) {
       if (err) {
         reject(err.message);
       } else {
-        let user_id = req.userId;
         let body_json = JSON.parse(body);
         last_search[user_id] = HEROKU + body_json.link;
 
@@ -327,6 +327,7 @@ function ping_on_blocking_download(id, callback) {
       if (body_json.downloaded) {
         callback();
       } else {
+        console.log(`Still downloading. Next ping occurs in ${CACHE_POLLING_INTERVAL} ms.`);
         setTimeout(ping_on_blocking_download, CACHE_POLLING_INTERVAL, id, callback);
       }
     }
