@@ -335,13 +335,15 @@ function ping_on_blocking_download(id, callback) {
 }
 
 app.pre = function(req, res, type) {
-  if (req.data.session !== undefined) {
-    if (req.data.session.application.applicationId !== process.env.ALEXA_APPLICATION_ID) {
-      res.fail("Invalid application");
-    }
-  } else {
-    if (req.applicationId !== process.env.ALEXA_APPLICATION_ID) {
-      res.fail("Invalid application");
+  if (process.env.ALEXA_APPLICATION_ID != null) {
+    if (req.data.session !== undefined) {
+      if (req.data.session.application.applicationId !== process.env.ALEXA_APPLICATION_ID) {
+        res.fail("Invalid application");
+      }
+    } else {
+      if (req.applicationId !== process.env.ALEXA_APPLICATION_ID) {
+        res.fail("Invalid application");
+      }
     }
   }
 };
