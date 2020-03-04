@@ -1,6 +1,6 @@
 # NodeJS files & folders
-src/node_modules
 build
+node_modules
 
 # Logs
 logs
@@ -27,9 +27,6 @@ coverage
 # node-waf configuration
 .lock-wscript
 
-# Compiled binary addons (http://nodejs.org/api/addons.html)
-build/Release
-
 # Dependency directories
 jspm_packages
 
@@ -38,5 +35,3 @@ jspm_packages
 
 # Optional REPL history
 .node_repl_history
-#node modules should be seperated from scr folder so that webpacking and build process can be easy
-node_modules
